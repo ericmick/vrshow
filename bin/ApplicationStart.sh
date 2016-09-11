@@ -1,1 +1,1 @@
-node /home/ec2-user/vrshow/index.js
+forever start /home/ec2-user/vrshow/index.js
