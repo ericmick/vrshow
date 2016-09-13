@@ -1,10 +1,30 @@
 {
   "name": "vrshow",
   "version": "0.0.0",
+  "contributors": ["Tony Marsico", "Eric Mickelsen"],
   "scripts": {
-    "start": "node index.js"
+    "start": "gulp dev",
+    "gulp": "gulp"
   },
   "peerDependencies": {
     "forever": "0.x"
+  },
+  "dependencies": {
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-polyfill": "^6.13.0",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-react": "^6.11.1",
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-util": "^3.0.7",
+    "gutil": "^1.6.4",
+    "koa": "^1.2.1",
+    "koa-router": "^5.4.0",
+    "koa-static": "^2.0.0",
+    "three": "^0.80.1",
+    "underscore": "^1.8.3",
+    "webpack": "^1.13.2",
+    "webvr-polyfill": "^0.9.18"
   }
 }

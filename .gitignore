@@ -1,0 +1,19 @@
+build/
+dist/
+
+# IntelliJ
+.idea
+*.iml
+out
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Node
+node_modules
+logs
+*.log
+npm-debug.log*
