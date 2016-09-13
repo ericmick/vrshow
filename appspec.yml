@@ -9,4 +9,4 @@ hooks:
       timeout: 180
   AfterInstall:
     - location: bin/AfterInstall.sh
-      timeout: 180
+      timeout: 180000
