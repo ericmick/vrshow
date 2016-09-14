@@ -4,9 +4,6 @@ files:
   - source: /
     destination: /home/ec2-user/vrshow
 hooks:
-  ApplicationStop:
-    - location: bin/ApplicationStop.sh
-      timeout: 180
   ApplicationStart:
     - location: bin/ApplicationStart.sh
       timeout: 180
