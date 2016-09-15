@@ -2,7 +2,7 @@
  * THREE.js Vive controller class based on:
  *  https://github.com/mrdoob/three.js/blob/dev/examples/js/ViveController.js
  */
-import { Object3D, Matrix4 } from 'three';
+import { Object3D, Matrix4, OBJLoader, TextureLoader } from 'three';
 
 const ButtomMap = {
     thumbpad: 0,
@@ -11,26 +11,41 @@ const ButtomMap = {
     menu: 3
 };
 
+const VIVE_CONTROLLER_MODEL_DIR = 'models/vive-controller/';
+
 export default class ViveController extends Object3D {
-    constructor(id) {
+    constructor(controllerNum) {
         super();
 
+        this.controllerNum = controllerNum;
         this.matrixAutoUpdate = false;
         this.standingMatrix = new Matrix4();
-        this.gamepad = findGamepad(id);
+        this.gamepad = null;
 
         // Controller buttons
         this.axes = [ 0, 0 ];
         this.isPressed = [false, false, false, false];
 
         // Create button getters
-        ButtomMap.forEach((val, key) => {
+        for(let key in ButtomMap) {
+            const val = ButtomMap[key];
             this[`is${capitalize(key)}Pressed`] = () => this.isPressed[val];
+        }
+
+        const loader = new OBJLoader();
+        loader.setPath(VIVE_CONTROLLER_MODEL_DIR);
+        loader.load('vr_controller_vive_1_5.obj', (obj) => {
+            const loader = new TextureLoader();
+            loader.setPath(VIVE_CONTROLLER_MODEL_DIR);
+            const controller = obj.children[0];
+            controller.material.map = loader.load('onepointfive_texture.png');
+            controller.material.specularMap = loader.load('onepointfive_spec.png');
+            this.add(obj);
         });
     }
 
     update() {
-        const gamepad = this.gamepad = findGamepad(id);
+        const gamepad = this.gamepad = findGamepad(this.controllerNum);
 
         if(gamepad && gamepad.pose) {
             //  Position and orientation.
@@ -52,14 +67,15 @@ export default class ViveController extends Object3D {
             }
 
             // Buttons
-            ButtomMap.forEach((val, key) => {
+            for(let key in ButtomMap) {
+                const val = ButtomMap[key];
                 const gamepadPressed = gamepad.buttons[val].pressed;
                 if(this.isPressed[key] !== gamepadPressed) {
                     this.isPressed[key] = gamepadPressed;
                     const type = key + (gamepadPressed ? 'down' : 'up');
-                    this.event.dispatchEvent({type});
+                    this.dispatchEvent({type});
                 }
-            });
+            }
         } else {
             this.visible = false;
         }
@@ -70,14 +86,14 @@ export default class ViveController extends Object3D {
     }
 }
 
-function findGamepad(id) {
+function findGamepad(controllerNum) {
     // Iterate across gamepads to find
     //  Vive Controllers
     const gamepads = navigator.getGamepads();
     for(let i=0, j=0; i < gamepads.length; i++) {
         const gamepad = gamepads[i];
-        if(gamepad.id === 'OpenVR Gamepad') {
-            if(j === id) {
+        if(gamepad && gamepad.id === 'OpenVR Gamepad') {
+            if(j === controllerNum) {
                 return gamepad;
             } else {
                 j++;

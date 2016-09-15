@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Scene, WebGLRenderer, PerspectiveCamera} from 'three'
 import VRRenderer from './VRRenderer';
-import ViveController from './ViveController';
+import Avatar from './Avatar';
 
 const $error = document.getElementById("error-container");
 const $vrToggle = document.getElementById("vr-toggle");
@@ -28,6 +28,8 @@ renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
 const vrRenderer = new VRRenderer(renderer, onVrChange, showError);
+const user = new Avatar(scene);
+vrRenderer.setAvatar(user);
 const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
 const clock = new THREE.Clock();
@@ -87,8 +89,9 @@ function init() {
 
 function render() {
     vrRenderer.requestAnimationFrame(render);
+    const delta = clock.getDelta() * 60;
 
-    var delta = clock.getDelta() * 60;
+    user.update();
 
 
     for ( var i = 0; i < room.children.length; i ++ ) {

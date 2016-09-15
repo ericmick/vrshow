@@ -48,6 +48,13 @@ export default class VRRenderer {
         this.addListeners();
     }
 
+    setAvatar(avatar) {
+        this.avatar = avatar;
+        avatar.headMatrix = this.headMatrix;
+        avatar.standingMatrix = this.standingMatrix;
+        avatar.isPresenting = () => this.isPresenting;
+    }
+
     updateVrDisplay() {
         const hadVr = !!this.vrDisplay;
         const informChange = (display) => {

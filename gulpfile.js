@@ -15,6 +15,7 @@ process.once('SIGINT', function () {
 gulp.task('vendor', function() {
     return gulp.src([
             './node_modules/three/build/three.min.js',
+            './node_modules/three/examples/js/loaders/OBJLoader.js',
             './node_modules/webvr-polyfill/build/webvr-polyfill.js'
         ], { buffer: true })
         .pipe(gulp.dest('dist/vendor'));
