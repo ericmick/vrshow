@@ -27,6 +27,7 @@
     "socket.io": "^1.4.8",
     "three": "^0.80.1",
     "underscore": "^1.8.3",
+    "webrtc-adapter": "^2.0.0",
     "webpack": "^1.13.2",
     "webvr-polyfill": "^0.9.18"
   }
