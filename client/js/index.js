@@ -2,6 +2,10 @@ import * as THREE from 'three';
 import { Scene, WebGLRenderer, PerspectiveCamera} from 'three'
 import VRRenderer from './VRRenderer';
 import Avatar from './Avatar';
+import Audio from './Audio';
+
+const audio = window.audio = new Audio();
+audio.connect();
 
 const $error = document.getElementById("error-container");
 const $vrToggle = document.getElementById("vr-toggle");
