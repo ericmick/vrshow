@@ -144,7 +144,7 @@ export default class VRRenderer {
                 // Exit present mode
                 resolve(this.vrDisplay.exitPresent());
             }
-        })
+        }).catch((reason) => this.error(reason))
     }
 
     requestAnimationFrame(cb) {
@@ -191,7 +191,7 @@ export default class VRRenderer {
                 camera.position.fromArray(frameData.pose.position);
             }
 
-            if(false &&this.vrDisplay.stageParameters) {
+            if(false && this.vrDisplay.stageParameters) {
                 this.standingMatrix.fromArray(this.vrDisplay.stageParameters.sittingToStandingTransform);
                 this.areaSize.x = this.vrDisplay.stageParameters.sizeX;
                 this.areaSize.z = this.vrDisplay.stageParameters.sizeZ;
@@ -199,8 +199,6 @@ export default class VRRenderer {
             } else {
                 posePosition.setY(posePosition.y + defaultUserHeight);
             }
-
-
 
             // Render Eyes
             this.renderer.setScissorTest(true);

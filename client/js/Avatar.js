@@ -1,5 +1,5 @@
 /**
- * Class to represent an eye in VR.
+ * Class to represent a person in VR.
  */
 
 import { Object3D, Matrix4 } from 'three';
