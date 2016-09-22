@@ -5,7 +5,6 @@ import Avatar from './Avatar';
 import Audio from './Audio';
 
 const audio = window.audio = new Audio();
-audio.connect();
 
 const $error = document.getElementById("error-container");
 const $vrToggle = document.getElementById("vr-toggle");

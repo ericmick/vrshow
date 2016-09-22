@@ -6,6 +6,7 @@ module.exports = class Peering {
       const sid = socket.id;
       if (!this.sessions[sid]) {
         this.sessions[sid] = {};
+        console.log('new session', sid);
       }
       this.sessions[sid].getSocket = () => {
         return socket;
@@ -24,6 +25,7 @@ module.exports = class Peering {
         io.sockets[answer.target].emit('answer', answer);
       });
       socket.on('icecandidate', (message) => {
+        message.name = sid;
         io.sockets[message.target].emit('icecandidate', message);
       });
     });
