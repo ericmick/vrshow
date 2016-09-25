@@ -30,9 +30,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
-const vrRenderer = new VRRenderer(renderer, onVrChange, showError);
 const user = new Avatar(scene);
-vrRenderer.setAvatar(user);
+const vrRenderer = new VRRenderer(user, renderer, onVrChange, showError);
 const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
 const clock = new THREE.Clock();
@@ -94,8 +93,6 @@ function render() {
     vrRenderer.requestAnimationFrame(render);
     const delta = clock.getDelta() * 60;
 
-    user.update();
-
 
     for ( var i = 0; i < room.children.length; i ++ ) {
         var cube = room.children[ i ];
@@ -117,6 +114,7 @@ function render() {
     }
 
 
+    user.update();
     vrRenderer.render(scene, camera);
 }
 
