@@ -14,8 +14,12 @@ export default class Audio {
       return stream;
     });
   }
-  putStream(stream) {
+  playStream(stream) {
     const context = this.context;
+    const player = new window.Audio();
+    player.muted = true;
+    player.srcObject = stream;
+    player.play();
     const source = context.createMediaStreamSource(stream);
     source.connect(context.destination);
   }
@@ -135,15 +139,11 @@ export default class Audio {
     });
     connection.addEventListener('track', (event) => {
       console.log('track', event);
-      const player = new window.Audio();
-      player.srcObject = event.streams[0];
-      player.play();
+      this.playStream(event.streams[0]);
     });
     connection.addEventListener('addstream', (event) => {
       console.log('addstream', event);
-      const player = new window.Audio();
-      player.srcObject = event.stream;
-      player.play();
+      this.playStream(event.stream);
     });
     return this.getStream().then((stream) => {
       connection.addStream(stream);
