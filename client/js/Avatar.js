@@ -25,8 +25,18 @@ export default class Avatar extends Object3D {
     }
 
     updatePose(pose) {
-        this.position.fromArray(pose.position);
-        this.quaternion.fromArray(pose.orientation);
+
+        // Position may be false if tracking currently
+        // unavailable or null if not supported as
+        // in Cardboard
+        if(pose.position) {
+            this.position.fromArray(pose.position);
+        }
+
+        if(pose.orientation) {
+            this.quaternion.fromArray(pose.orientation);
+        }
+
         this.updateMatrix();
 
         // TODO: Pose also has velocity and acceleration
