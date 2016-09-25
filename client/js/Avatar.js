@@ -2,16 +2,14 @@
  * Class to represent a person in VR.
  */
 
-import { Object3D, Matrix4 } from 'three';
+import { Object3D } from 'three';
 import ViveController from './ViveController';
 
 export default class Avatar extends Object3D {
     constructor(scene) {
         super();
 
-        this.headMatrix = new Matrix4();
-        this.standingMatrix = new Matrix4();
-        this.isPresenting = () => false;
+        this.userId = null;
 
         this.controllers = [
             new ViveController(0),
@@ -19,17 +17,40 @@ export default class Avatar extends Object3D {
         ];
 
         this.controllers.forEach((c)=> {
-            c.standingMatrix = this.standingMatrix;
             scene.add(c);
         });
+
+        // Place head above the floor
+        // this.position.setY(defaultUserHeight);
+    }
+
+    updatePose(pose) {
+
+        // Position may be false if tracking currently
+        // unavailable or null if not supported as
+        // in Cardboard
+        if(pose.position) {
+            this.position.fromArray(pose.position);
+        }
+
+        if(pose.orientation) {
+            this.quaternion.fromArray(pose.orientation);
+        }
+
+        this.updateMatrix();
+
+        // TODO: Pose also has velocity and acceleration
+        // which we want to save for sharing:
+        //   https://w3c.github.io/webvr/#interface-vrpose
     }
 
     update() {
-        if(this.isPresenting()) {
-            this.controllers.forEach((c)=> {
-                c.standingMatrix = this.standingMatrix;
-                c.update();
-            });
-        }
+        this.controllers.forEach((c)=> {
+            c.update();
+        });
     }
 }
+
+// Distance from the users eyes to the floor in meters. Used when
+// the VRDisplay doesn't provide stageParameters.
+const defaultUserHeight = 1.6;

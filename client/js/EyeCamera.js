@@ -2,20 +2,16 @@
  * Class to represent an eye in VR.
  */
 
-import { Vector3, Matrix4, PerspectiveCamera } from 'three';
+import { Vector3, Matrix4, Camera } from 'three';
 
-export default class EyeCamera {
+export default class EyeCamera extends Camera {
     constructor(eyeType) {
+        super();
 
+        this.viewMatrix = new Matrix4();
         this.type = eyeType;
-        this.translation = new Vector3();
-
         this.bounds = getDefaultBounds(eyeType);
-
-        this.camera = new PerspectiveCamera();
-        this.camera.layers.enable(1);
-
-        this.headToEyeMatrix= new Matrix4();
+        this.layers.enable(1);
 
         // Constants for this Eye
         this.ProjectionMatrix = `${this.type}ProjectionMatrix`;
@@ -30,11 +26,8 @@ export default class EyeCamera {
         return vrDisplay.getEyeParameters(this.type);
     }
 
-    render(scene, monoCamera, renderer, vrDisplay, frameData, headMatrix) {
+    render(scene, monoCamera, renderer, vrDisplay, frameData) {
         if(vrDisplay) {
-            const eyeParams = this.getEyeParams(vrDisplay);
-            this.translation.fromArray(eyeParams.offset);
-
             const size = renderer.getSize();
 
             const renderRect = {
@@ -44,24 +37,13 @@ export default class EyeCamera {
                 height: Math.round(size.height * this.bounds[3])
             };
 
-            const { camera, headToEyeMatrix } = this;
-            monoCamera.matrixWorld.decompose(camera.position, camera.quaternion, camera.scale);
-
-            camera.projectionMatrix.elements = frameData[this.ProjectionMatrix];
-
-            // Take the view matricies and multiply them by the head matrix, which
-            // leaves only the head-to-eye transform.
-            headToEyeMatrix.fromArray(frameData[this.ViewMatrix]);
-            headToEyeMatrix.premultiply(headMatrix);
-            headToEyeMatrix.getInverse(headToEyeMatrix);
-
-            camera.updateMatrix();
-            camera.applyMatrix(headToEyeMatrix);
+            monoCamera.matrixWorld.decompose(this.position, this.quaternion, this.scale);
+            this.projectionMatrix.elements = frameData[this.ProjectionMatrix];
 
             // Render eye view
             renderer.setViewport(renderRect.x, renderRect.y, renderRect.width, renderRect.height);
             renderer.setScissor(renderRect.x, renderRect.y, renderRect.width, renderRect.height);
-            renderer.render(scene, camera);
+            renderer.render(scene, this);
         }
     }
 }

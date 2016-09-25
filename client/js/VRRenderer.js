@@ -10,7 +10,8 @@ import { Vector3, Matrix4, Quaternion } from 'three';
 import EyeCamera from './EyeCamera';
 
 export default class VRRenderer {
-    constructor(renderer, onVrAvailableChange, onError) {
+    constructor(avatar, renderer, onVrAvailableChange, onError) {
+        this.avatar = avatar;
         this.renderer = renderer;
         this.onVrAvailableChange = onVrAvailableChange;
         this.onError = onError;
@@ -25,15 +26,9 @@ export default class VRRenderer {
         this.canvas = renderer.domElement;
         this.frameData = !!window.VRFrameData ? new VRFrameData() : undefined;
 
+        // Cameras for HMD rendering
         this.leftEye = new EyeCamera(EyeCamera.TYPE.LEFT);
         this.rightEye = new EyeCamera(EyeCamera.TYPE.RIGHT);
-        /*
-            Vectors and Matrices used for VR rendering
-         */
-        this.posePosition = new Vector3();
-        this.poseOrientation = new Quaternion();
-        this.headMatrix = new Matrix4();
-        this.standingMatrix = new Matrix4();
 
         // Size of play area
         this.areaSize = { x: 0, z: 0 };
@@ -44,15 +39,9 @@ export default class VRRenderer {
         if(typeof this.onVrAvailableChange === 'function') {
             this.onVrAvailableChange(false, false);
         }
+
         this.updateVrDisplay();
         this.addListeners();
-    }
-
-    setAvatar(avatar) {
-        this.avatar = avatar;
-        avatar.headMatrix = this.headMatrix;
-        avatar.standingMatrix = this.standingMatrix;
-        avatar.isPresenting = () => this.isPresenting;
     }
 
     updateVrDisplay() {
@@ -148,8 +137,9 @@ export default class VRRenderer {
     }
 
     requestAnimationFrame(cb) {
-        const funcToCall = this.vrDisplay && this.isPresenting ? this.vrDisplay.requestAnimationFrame : window.requestAnimationFrame;
-        //return funcToCall(cb);
+        // TODO: vrDisplay.requestAnimationFrame does not seem to be working yet
+        // const funcToCall = this.vrDisplay && this.isPresenting ? this.vrDisplay.requestAnimationFrame : window.requestAnimationFrame;
+        // return funcToCall(cb);
 
         return window.requestAnimationFrame(cb);
     }
@@ -160,50 +150,34 @@ export default class VRRenderer {
             const {
                 vrDisplay,
                 renderer,
-                frameData,
-                posePosition,
-                poseOrientation,
-                headMatrix
+                frameData
             } = this;
 
             if(renderer.autoClear) {
                 renderer.clear();
             }
-            camera.updateMatrixWorld();
+
             vrDisplay.depthNear = camera.near;
             vrDisplay.depthFar = camera.far;
 
             vrDisplay.getFrameData(frameData);
+            this.avatar.updatePose(frameData.pose);
 
-            // Update positions
-            // Compute the matrix for the position of the head based on the pose
-            if(frameData.pose.orientation) {
-                poseOrientation.fromArray(frameData.pose.orientation);
-                headMatrix.makeRotationFromQuaternion(poseOrientation);
-                camera.quaternion.fromArray(frameData.pose.orientation);
-            } else {
-                headMatrix.identity();
-            }
+            // Update camera from avatar
+            this.updateCameraLocation(camera);
 
-            if(frameData.pose.position) {
-                posePosition.fromArray(frameData.pose.position);
-                headMatrix.setPosition(posePosition);
-                camera.position.fromArray(frameData.pose.position);
-            }
-
+            // TODO: Handle standing matrix
             if(false && this.vrDisplay.stageParameters) {
                 this.standingMatrix.fromArray(this.vrDisplay.stageParameters.sittingToStandingTransform);
                 this.areaSize.x = this.vrDisplay.stageParameters.sizeX;
                 this.areaSize.z = this.vrDisplay.stageParameters.sizeZ;
-                camera.applyMatrix(this.standingMatrix);
-            } else {
-                posePosition.setY(posePosition.y + defaultUserHeight);
+                this.avatar.applyMatrix(this.standingMatrix);
             }
 
             // Render Eyes
             this.renderer.setScissorTest(true);
-            this.leftEye.render(scene, camera, renderer, vrDisplay, frameData, headMatrix);
-            this.rightEye.render(scene, camera, renderer, vrDisplay, frameData, headMatrix);
+            this.leftEye.render(scene, camera, renderer, vrDisplay, frameData);
+            this.rightEye.render(scene, camera, renderer, vrDisplay, frameData);
             this.renderer.setScissorTest(false);
 
             scene.autoUpdate = true;
@@ -211,12 +185,16 @@ export default class VRRenderer {
             this.vrDisplay.submitFrame();
         } else {
             // Non-VR render
+            this.updateCameraLocation(camera);
             this.renderer.render(scene, camera);
         }
     }
 
-    updateCameraLocation() {
-
+    updateCameraLocation(camera) {
+        // Lock camera to avatar head
+        camera.position.copy(this.avatar.getWorldPosition());
+        camera.quaternion.copy(this.avatar.getWorldQuaternion());
+        camera.updateMatrixWorld();
     }
 
     resetPose() {
@@ -229,7 +207,3 @@ export default class VRRenderer {
         return this.standingMatrix;
     }
 }
-
-// Distance from the users eyes to the floor in meters. Used when
-// the VRDisplay doesn't provide stageParameters.
-const defaultUserHeight = 1.6;

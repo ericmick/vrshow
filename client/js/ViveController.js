@@ -19,7 +19,6 @@ export default class ViveController extends Object3D {
 
         this.controllerNum = controllerNum;
         this.matrixAutoUpdate = false;
-        this.standingMatrix = new Matrix4();
         this.gamepad = null;
 
         // Controller buttons
@@ -50,12 +49,11 @@ export default class ViveController extends Object3D {
         if(gamepad && gamepad.pose) {
             //  Position and orientation.
             const pose = gamepad.pose;
-
             this.position.fromArray(pose.position);
             this.quaternion.fromArray(pose.orientation);
-            this.matrix.compose(this.position, this.quaternion, this.scale );
-            this.matrix.multiplyMatrices(this.standingMatrix, this.matrix);
+            this.matrix.compose(this.position, this.quaternion, this.scale);
             this.matrixWorldNeedsUpdate = true;
+            this.updateMatrixWorld();
             this.visible = true;
 
             //  Thumbpad touch surface
