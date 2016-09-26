@@ -2,9 +2,7 @@ import * as THREE from 'three';
 import { Scene, WebGLRenderer, PerspectiveCamera} from 'three'
 import VRRenderer from './VRRenderer';
 import Avatar from './Avatar';
-import Audio from './Audio';
-
-const audio = window.audio = new Audio();
+import Peering from './Peering';
 
 const $error = document.getElementById("error-container");
 const $vrToggle = document.getElementById("vr-toggle");
@@ -31,6 +29,20 @@ renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
 const user = new Avatar(scene);
+const peering = window.peering = new Peering((dataChannel) => {
+  const somebody = new Avatar(scene);
+  dataChannel.addEventListener('message', (event) => {
+    somebody.fromBlob(event.data);
+  });
+  dataChannel.addEventListener('close', (event) => {
+    //TODO: remove avatar from scene
+  });
+});
+user.onUpdate = () => {
+  peering.send(user.toBlob());
+};
+peering.send(user.toBlob());
+
 const vrRenderer = new VRRenderer(user, renderer, onVrChange, showError);
 const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
