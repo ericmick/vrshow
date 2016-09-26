@@ -1,7 +1,7 @@
 /**
  * Class to represent a person in VR.
  */
-
+import * as THREE from 'three';
 import { Object3D } from 'three';
 import ViveController from './ViveController';
 
@@ -11,14 +11,23 @@ export default class Avatar extends Object3D {
 
         this.userId = null;
 
-        this.controllers = [
+        this.controllers = scene ? [
             new ViveController(0),
             new ViveController(1)
-        ];
+        ]: [];
 
         this.controllers.forEach((c)=> {
             scene.add(c);
         });
+
+        if(!scene) {
+            // only pass scene if main avatar is main user
+            //  otherwise show a torus
+            var geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+            var material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            var torus = new THREE.Mesh(geometry, material);
+            this.add(torus);
+        }
 
         // Place head above the floor
         // this.position.setY(defaultUserHeight);
@@ -48,6 +57,42 @@ export default class Avatar extends Object3D {
         this.controllers.forEach((c)=> {
             c.update();
         });
+    }
+
+    toBlob(buffer) {
+        buffer = buffer || new ArrayBuffer(this.getBlobByteLength());
+        if(buffer.byteLength != this.getBlobByteLength()) {
+            throw new Error('Blob serialization error.')
+        }
+
+        let i, offset = 0;
+        const dataView = new DataView(buffer, 0);
+
+        for(i=0; i<16; i++) {
+            dataView.setFloat32(offset, this.matrixWorld.elements[i]);
+            offset += 4;
+        }
+
+        return buffer;
+    }
+
+    fromBlob(buffer) {
+        if(!buffer || buffer.byteLength != this.getBlobByteLength()) {
+            throw new Error('Blob serialization error.')
+        }
+
+        var i, offset = 0;
+        const dataView = new DataView(buffer, 0);
+
+        for(i=0; i<16; i++) {
+            this.matrixWorld.elements[i] = dataView.getFloat32(offset);
+            offset += 4;
+        }
+    }
+
+    getBlobByteLength() {
+        // The expected array buffer size to use
+        return 16*4;
     }
 }
 
