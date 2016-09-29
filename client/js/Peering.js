@@ -86,6 +86,16 @@ export default class Peering {
       }],
       rtcpMuxPolicy: 'require'
     });
+
+
+    let dataChannel = connection.createDataChannel('avatar');
+    this.peers[target].dataChannel = dataChannel;
+    dataChannel.addEventListener('open', () => {
+      console.log('datachannel open');
+      this.onReceiveDataChannel(dataChannel);
+    });
+
+
     let disconnectionTimeout = null;
     connection.addEventListener('negotiationneeded', (event) => {
       console.log('negotiationneeded', event);
@@ -153,7 +163,10 @@ export default class Peering {
   }
   send(data) {
     for (let i in this.peers) {
-      this.peers[i].dataChannel.send(data);
+      let chan = this.peers[i].dataChannel;
+      if(chan.readyState === 'open') {
+        chan.send(data);
+      }
     }
   }
 }

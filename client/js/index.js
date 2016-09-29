@@ -30,18 +30,24 @@ document.body.appendChild(renderer.domElement);
 
 const user = new Avatar(scene);
 const peering = window.peering = new Peering((dataChannel) => {
-  const somebody = new Avatar(scene);
-  dataChannel.addEventListener('message', (event) => {
-    somebody.fromBlob(event.data);
-  });
-  dataChannel.addEventListener('close', (event) => {
-    //TODO: remove avatar from scene
-  });
+    const somebody = new Avatar();
+    scene.add(somebody);
+
+
+    dataChannel.addEventListener('message', (event) => {
+        console.log(event, event.data.byteLength);
+        somebody.fromBlob(event.data);
+    });
+    dataChannel.addEventListener('close', (event) => {
+        // remove avatar from scene
+        scene.remove(somebody);
+    });
 });
-user.onUpdate = () => {
-  peering.send(user.toBlob());
-};
-peering.send(user.toBlob());
+
+setInterval(() => {
+    peering.send(user.toBlob());
+}, 60);
+
 
 const vrRenderer = new VRRenderer(user, renderer, onVrChange, showError);
 const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
@@ -82,7 +88,7 @@ function init() {
     scene.add(light);
 
     var geometry = new THREE.BoxGeometry( 0.15, 0.15, 0.15 );
-    for ( var i = 0; i < 200; i ++ ) {
+    for ( var i = 0; i < 50; i ++ ) {
         var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
         object.position.x = Math.random() * 4 - 2;
         object.position.y = Math.random() * 4 - 2;
