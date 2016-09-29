@@ -14,11 +14,24 @@ export default class Peering {
     const socket = this.socket = io('/peering');
     socket.on('callme', (message) => {
       console.log('got callme', message);
-      if (this.peers[message.name]) {
-        this.peers[message.name].connection.close();
-        this.peers[message.name] = null;
+      const target = message.name;
+      if (this.peers[target]) {
+        this.peers[target].connection.close();
+        this.peers[target] = null;
       }
-      this.makePeerConnection(message.name);
+      this.makePeerConnection(message.name, true).then((connection) => {
+        connection.createOffer().then((offer) => {
+          return connection.setLocalDescription(offer);
+        }).then(() => {
+          const offerMessage = {
+            sdp: connection.localDescription,
+            target: target,
+            type: 'offer'
+          };
+          socket.emit('offer', offerMessage);
+          console.log('sent offer', offerMessage);
+        });
+      });
     });
     socket.on('answer', (answer) => {
       console.log('got answer', answer);
@@ -59,7 +72,7 @@ export default class Peering {
     socket.emit('callme');
     console.log('sent callme');
   }
-  makePeerConnection(target) {
+  makePeerConnection(target, needsDataChannel) {
     if (this.peers[target]) {
       return new Promise((resolve, reject) => {
         resolve(this.peers[target].connection);
@@ -68,17 +81,15 @@ export default class Peering {
     const socket = this.socket;
     this.peers[target] = {};
     const connection = this.peers[target].connection = new RTCPeerConnection({
-        iceServers: [{
-          urls: ['stun:stun.l.google.com:19302']
-        }],
-        rtcpMuxPolicy: 'require'
-      }, {
-      optional: [
-        {DtlsSrtpKeyAgreement: true},
-        {RtpDataChannels: true}
-      ]
+      iceServers: [{
+        urls: ['stun:stun.l.google.com:19302']
+      }],
+      rtcpMuxPolicy: 'require'
     });
     let disconnectionTimeout = null;
+    connection.addEventListener('negotiationneeded', (event) => {
+      console.log('negotiationneeded', event);
+    });
     connection.addEventListener('iceconnectionstatechange', (event) => {
       if (connection.iceConnectionState == 'closed'
         || connection.iceConnectionState == 'failed'
@@ -111,20 +122,6 @@ export default class Peering {
       socket.emit('icecandidate', message);
       console.log('sent icecandidate', message);
     });
-    connection.addEventListener('negotiationneeded', (event) => {
-      console.log('negotiationneeded', event);
-      connection.createOffer().then((offer) => {
-        return connection.setLocalDescription(offer);
-      }).then(() => {
-        const offerMessage = {
-          sdp: connection.localDescription,
-          target: target,
-          type: 'offer'
-        };
-        socket.emit('offer', offerMessage);
-        console.log('sent offer', offerMessage);
-      });
-    });
     connection.addEventListener('track', (event) => {
       console.log('track', event);
       this.onReceiveAudioStream(event.streams[0]);
@@ -135,17 +132,22 @@ export default class Peering {
     });
     connection.addEventListener('datachannel', (event) => {
       console.log('datachannel', event);
+      this.peers[target].dataChannel = event.channel;
       this.onReceiveDataChannel(event.channel);
     });
     return this.getAudioStream().then((stream) => {
       connection.addStream(stream);
+      return connection;
     }).then(() => {
-      let dataChannel = connection.createDataChannel('avatar');
-      this.peers[target].dataChannel = dataChannel;
-      dataChannel.addEventListener('open', () => {
-        console.log('datachannel open');
-        this.onReceiveDataChannel(dataChannel);
-      });
+      if (needsDataChannel) {
+        console.log('createDataChannel', 'avatar');
+        let dataChannel = connection.createDataChannel('avatar');
+        this.peers[target].dataChannel = dataChannel;
+        dataChannel.addEventListener('open', (event) => {
+          console.log('datachannel open', event);
+          this.onReceiveDataChannel(dataChannel);
+        });
+      }
       return connection;
     });
   }
