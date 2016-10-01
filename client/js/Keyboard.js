@@ -3,11 +3,11 @@ export default class Keyboard {
         this.context = context;
         this.pressedKeys = {};
         this.eventListeners = {
-          'keydown': (e) => this.keydown(e),
-          'keyup': (e) => this.keyup(e)
+            'keydown': (e) => this.keydown(e),
+            'keyup': (e) => this.keyup(e)
         };
         for(const eventType in this.eventListeners) {
-          this.context.addEventListener(eventType, this.eventListeners[eventType]);
+            this.context.addEventListener(eventType, this.eventListeners[eventType]);
         }
     }
   

@@ -4,6 +4,7 @@ import VRRenderer from './VRRenderer';
 import Avatar from './Avatar';
 import Peering from './Peering';
 import Keyboard from './Keyboard';
+import TouchScreen from './TouchScreen';
 
 const $error = document.getElementById("error-container");
 const $vrToggle = document.getElementById("vr-toggle");
@@ -76,6 +77,7 @@ $resetPose.onclick = () => {
 };
 
 const keyboard = new Keyboard();
+const touchScreen = new TouchScreen();
 
 let room;
 function init() {
@@ -150,6 +152,7 @@ function render() {
     if (keyboard.isPressed('d')) {
         user.turnRight(delta * 0.02);
     }
+    user.moveForward(touchScreen.consumeDeltaY);
     user.update();
     vrRenderer.render(scene, camera);
 }
