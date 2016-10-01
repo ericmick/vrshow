@@ -137,26 +137,29 @@ export default class Peering {
             this.peers[target].dataChannel = event.channel;
             this.onReceiveDataChannel(event.channel);
         });
+        if(needsDataChannel) {
+            console.log('createDataChannel', 'avatar');
+            let dataChannel = connection.createDataChannel('avatar');
+            this.peers[target].dataChannel = dataChannel;
+            dataChannel.addEventListener('open', (event) => {
+                console.log('datachannel open', event);
+                this.onReceiveDataChannel(dataChannel);
+            });
+        }
+        const returnConnection = () => {
+            return connection;
+        };
         return this.getAudioStream().then((stream) => {
             connection.addStream(stream);
-            return connection;
-        }).then(() => {
-            if(needsDataChannel) {
-                console.log('createDataChannel', 'avatar');
-                let dataChannel = connection.createDataChannel('avatar');
-                this.peers[target].dataChannel = dataChannel;
-                dataChannel.addEventListener('open', (event) => {
-                    console.log('datachannel open', event);
-                    this.onReceiveDataChannel(dataChannel);
-                });
-            }
-            return connection;
-        });
+        }).then(returnConnection).catch(returnConnection);
     }
 
     send(data) {
         for(let i in this.peers) {
-            this.peers[i].dataChannel.send(data);
+            let channel = this.peers[i].dataChannel;
+            if(channel && channel.readyState === 'open') {
+                channel.send(data);
+            }
         }
     }
 }

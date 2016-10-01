@@ -11,6 +11,8 @@ export default class Avatar extends Object3D {
 
         this.userId = null;
 
+        this.matrixAutoUpdate = false;
+
         this.controllers = scene ? [
             new ViveController(0),
             new ViveController(1)
@@ -20,13 +22,17 @@ export default class Avatar extends Object3D {
             scene.add(c);
         });
 
-        if(!scene) {
-            // only pass scene if main avatar is main user
-            //  otherwise show a torus
-            var geometry = new THREE.TorusGeometry(10, 3, 16, 100);
-            var material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-            var torus = new THREE.Mesh(geometry, material);
-            this.add(torus);
+        // only pass scene if main avatar is main user
+        //  otherwise show a torus
+        var geometry = new THREE.TorusGeometry(0.05, 0.003);
+        var material =  new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff });
+        var torus = new THREE.Mesh(geometry, material);
+        torus.position.z = -0.07;
+        this.add(torus);
+
+        if(scene) {
+            scene.add(this);
+            torus.opacity = 0.5;
         }
         
         // These represent transformations based on user input
@@ -34,6 +40,7 @@ export default class Avatar extends Object3D {
         // events, teleportation, interactions with the virtual world.
         this.userPosition = new THREE.Vector3();
         this.userOrientation = new THREE.Quaternion();
+
 
         // Place head above the floor
         // this.position.setY(defaultUserHeight);
@@ -82,7 +89,7 @@ export default class Avatar extends Object3D {
         const dataView = new DataView(buffer, 0);
 
         for(i=0; i<16; i++) {
-            dataView.setFloat32(offset, this.matrixWorld.elements[i]);
+            dataView.setFloat32(offset, this.matrix.elements[i]);
             offset += 4;
         }
 
@@ -98,9 +105,11 @@ export default class Avatar extends Object3D {
         const dataView = new DataView(buffer, 0);
 
         for(i=0; i<16; i++) {
-            this.matrixWorld.elements[i] = dataView.getFloat32(offset);
+            this.matrix.elements[i] = dataView.getFloat32(offset);
             offset += 4;
         }
+
+        this.matrixWorldNeedsUpdate = true;
     }
 
     getBlobByteLength() {
