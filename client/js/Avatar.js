@@ -28,22 +28,35 @@ export default class Avatar extends Object3D {
             var torus = new THREE.Mesh(geometry, material);
             this.add(torus);
         }
+        
+        // These represent transformations based on user input
+        // *not* from the VR pose, i.e. keyboard events, touch
+        // events, teleportation, interactions with the virtual world.
+        this.userPosition = new THREE.Vector3();
+        this.userOrientation = new THREE.Quaternion();
 
         // Place head above the floor
         // this.position.setY(defaultUserHeight);
     }
 
+    // Pose may be undefined when not in VR
     updatePose(pose) {
-
+        
         // Position may be false if tracking currently
         // unavailable or null if not supported as
         // in Cardboard
-        if(pose.position) {
+        if(pose && pose.position) {
             this.position.fromArray(pose.position);
+            this.position.add(this.userPosition);
+        } else {
+            this.position.copy(this.userPosition);
         }
 
-        if(pose.orientation) {
+        if(pose && pose.orientation) {
             this.quaternion.fromArray(pose.orientation);
+            this.quaternion.multiply(this.userOrientation);
+        } else {
+            this.quaternion.copy(this.userOrientation);
         }
 
         this.updateMatrix();
@@ -93,6 +106,26 @@ export default class Avatar extends Object3D {
     getBlobByteLength() {
         // The expected array buffer size to use
         return 16*4;
+    }
+    
+    moveBackward(distance) {
+        const v = new THREE.Vector3(0, 0, distance);
+        v.applyQuaternion(this.userOrientation);
+        this.userPosition.add(v);
+    }
+
+    moveForward(distance) {
+        this.moveBackward(-distance);
+    }
+
+    turnLeft(angle) {
+        const axis = new THREE.Vector3(0, 1, 0);
+        const q = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+        this.userOrientation.multiply(q);
+    }
+
+    turnRight(angle) {
+        this.turnLeft(-angle);
     }
 }
 

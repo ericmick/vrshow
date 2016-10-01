@@ -3,6 +3,7 @@ import { Scene, WebGLRenderer, PerspectiveCamera} from 'three'
 import VRRenderer from './VRRenderer';
 import Avatar from './Avatar';
 import Peering from './Peering';
+import Keyboard from './Keyboard';
 
 const $error = document.getElementById("error-container");
 const $vrToggle = document.getElementById("vr-toggle");
@@ -68,6 +69,8 @@ $resetPose.onclick = () => {
     vrRenderer.resetPose();
 };
 
+const keyboard = new Keyboard();
+
 let room;
 function init() {
 
@@ -122,13 +125,37 @@ function render() {
             cube.position.z = THREE.Math.clamp( cube.position.z, - 3, 3 );
             cube.userData.velocity.z = - cube.userData.velocity.z;
         }
-        cube.rotation.x += 0.01 * delta;
+        cube.position.x += cube.userData.velocity.x * delta;
+        cube.position.y += cube.userData.velocity.y * delta;
+        cube.position.z += cube.userData.velocity.z * delta;
+        cube.rotation.x += cube.userData.velocity.x * delta;
+        cube.rotation.y += cube.userData.velocity.y * delta;
+        cube.rotation.z += cube.userData.velocity.z * delta;
     }
 
-
+    if (keyboard.isPressed('w')) {
+        user.moveForward(delta * 0.01);
+    }
+    if (keyboard.isPressed('a')) {
+        user.turnLeft(delta * 0.02);
+    }
+    if (keyboard.isPressed('s')) {
+        user.moveBackward(delta * 0.01);
+    }
+    if (keyboard.isPressed('d')) {
+        user.turnRight(delta * 0.02);
+    }
     user.update();
     vrRenderer.render(scene, camera);
 }
 
 init();
 render();
+
+// debug stuff
+Object.assign(window, {
+    user,
+    vrRenderer,
+    peering,
+    scene
+});

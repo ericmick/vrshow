@@ -185,6 +185,7 @@ export default class VRRenderer {
             this.vrDisplay.submitFrame();
         } else {
             // Non-VR render
+            this.avatar.updatePose();
             this.updateCameraLocation(camera);
             this.renderer.render(scene, camera);
         }
