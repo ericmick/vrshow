@@ -53,9 +53,6 @@ const peering = window.peering = new Peering((peer) => {
     });
 });
 
-setInterval(() => {
-    peering.send(user.toBlob());
-}, 60);
 
 
 const vrRenderer = new VRRenderer(user, renderer, onVrChange, showError);
@@ -171,6 +168,8 @@ function render() {
     user.moveForward(touchScreen.consumeDeltaY() * 0.005);
     user.update();
     vrRenderer.render(scene, camera);
+
+    peering.send(user.toBlob());
 }
 
 init();

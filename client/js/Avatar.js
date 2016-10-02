@@ -12,6 +12,8 @@ export default class Avatar extends Object3D {
         this.color = new THREE.Color(Math.random() * 0xffffff);
 
         this.head = new Object3D();
+        this.head.matrixAutoUpdate = false;
+
         this.add(this.head);
 
         if(isPrimary) {
@@ -27,11 +29,15 @@ export default class Avatar extends Object3D {
             glasses.material.color = this.color;
 
             let scale = 0.07;
+            obj.matrixAutoUpdate = false;
             obj.rotateY(-Math.PI / 2);
             obj.position.x = -18.4 * scale;
             obj.position.z = 1.8 * scale;
             obj.scale.set(scale, scale, scale);
+            obj.updateMatrix();
             this.head.add(obj);
+
+            this.glasses = obj;
         });
     }
 
@@ -57,13 +63,9 @@ export default class Avatar extends Object3D {
         }
         
         // Linear velocity
-        if (this.linearVelocity) {
-            for (let i = 0; i < 3; i++) {
-                dataView.setFloat32(offset, this.linearVelocity.getComponent(i));
-                offset += 4;
-            }
-        } else {
-            offset += 12;
+        for (let i = 0; i < 3; i++) {
+            dataView.setFloat32(offset, this.linearVelocity.getComponent(i));
+            offset += 4;
         }
 
         // Color
@@ -93,21 +95,23 @@ export default class Avatar extends Object3D {
             this.head.matrix.elements[i] = dataView.getFloat32(offset);
             offset += 4;
         }
-        
+
         // Linear velocity
         this.linearVelocity = new THREE.Vector3();
         for (let i = 0; i < 3; i++) {
             this.linearVelocity.setComponent(i, dataView.getFloat32(offset));
             offset += 4;
         }
-        
+
         // Color
         this.color.r = dataView.getUint8(offset++) / 255;
         this.color.g = dataView.getUint8(offset++) / 255;
         this.color.b = dataView.getUint8(offset++) / 255;
 
-        this.matrixWorldNeedsUpdate = true;
-        this.head.matrixWorldNeedsUpdate = true;
+        this.updateMatrixWorld(true);
+        this.head.updateMatrixWorld(true);
+        this.glasses && this.glasses.updateMatrixWorld(true);
+
     }
 
     getBlobByteLength() {

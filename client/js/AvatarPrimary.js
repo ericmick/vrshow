@@ -37,33 +37,25 @@ export default class AvatarPrimary extends Avatar {
 
     // Pose may be undefined
     updatePose(pose) {
-        if (pose) {
-            // save pose to use when updating based on
-            // userPosition or userOrientation
-            this.pose = pose;
-        }
+        this.pose = pose;
 
         // Position may be false if tracking currently
         // unavailable or null if not supported as
         // in Cardboard
-        if(this.pose && this.pose.position) {
-            this.head.position.fromArray(this.pose.position);
+        if(pose && pose.position) {
+            this.head.position.fromArray(pose.position);
         }
 
-        if(this.pose && this.pose.orientation) {
-            this.head.quaternion.fromArray(this.pose.orientation);
-        } else {
-            this.head.quaternion.set(0,0,0,1);
+        if(pose && pose.orientation) {
+            this.head.quaternion.fromArray(pose.orientation);
         }
         
-        if(this.pose && this.pose.linearVelocity) {
-            this.linearVelocity.fromArray(this.pose.linearVelocity);
+        if(pose && pose.linearVelocity) {
+            this.linearVelocity.fromArray(pose.linearVelocity);
         }
 
         this.head.updateMatrix();
-        this.updateMatrixWorld();
-        this.head.updateMatrixWorld();
-        
+        this.head.updateMatrixWorld(true);
         Audio.setListener(this.head.matrixWorld);
 
         // TODO: Pose also has velocity and acceleration
@@ -92,17 +84,23 @@ export default class AvatarPrimary extends Avatar {
     }
 
     moveBackward(distance) {
-        const v = new THREE.Vector3(0, 0, distance);
+        const v = new Vector3(0, 0, distance);
+
+        // Move along look direction
         const q = new Quaternion().setFromRotationMatrix(this.head.matrixWorld);
         v.applyQuaternion(q);
+
         this.position.add(v);
+        this.updateMatrix();
+
         if(this.pose && this.pose.linearVelocity) {
             this.linearVelocity.fromArray(this.pose.linearVelocity);
             this.linearVelocity.add(v);
         } else {
             this.linearVelocity.copy(v);
         }
-        this.updateMatrix();
+
+        this.head.updateMatrixWorld(true);
         Audio.setListener(this.head.matrixWorld);
     }
 
@@ -113,8 +111,13 @@ export default class AvatarPrimary extends Avatar {
     turnLeft(angle) {
         const axis = new THREE.Vector3(0, 1, 0);
         const q = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+
+        this.matrix.decompose(this.position, this.quaternion, this.scale)
+
         this.quaternion.multiply(q);
         this.updateMatrix();
+
+        this.head.updateMatrixWorld(true);
         Audio.setListener(this.head.matrixWorld);
     }
 
