@@ -40,6 +40,9 @@ const peering = window.peering = new Peering((peer) => {
         if (somebody.position && user.position && peer.audio) {
             const audioPosition = new THREE.Vector3();
             audioPosition.subVectors(somebody.position, user.position);
+            if (user.quaternion) {
+                audioPosition.apply(user.quaternion);
+            }
             peer.audio.setPosition(audioPosition);
         }
     });
