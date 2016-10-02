@@ -120,6 +120,9 @@ export default class Avatar extends Object3D {
     moveBackward(distance) {
         const v = new THREE.Vector3(0, 0, distance);
         v.applyQuaternion(this.userOrientation);
+        if (this.quaternion) {
+            v.applyQuaternion(this.quaternion);
+        }
         this.userPosition.add(v);
     }
 

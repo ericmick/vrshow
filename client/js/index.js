@@ -151,7 +151,7 @@ function render() {
     if (keyboard.isPressed('d')) {
         user.turnRight(delta * 0.02);
     }
-    user.moveForward(touchScreen.consumeDeltaY() * 0.01);
+    user.moveForward(touchScreen.consumeDeltaY() * 0.005);
     user.update();
     vrRenderer.render(scene, camera);
 }
