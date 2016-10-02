@@ -168,7 +168,7 @@ export default class VRRenderer {
             this.updateCameraLocation(camera);
 
             // TODO: Handle standing matrix
-            if(this.vrDisplay.stageParameters) {
+            if(false && this.vrDisplay.stageParameters) {
                 this.standingMatrix.fromArray(this.vrDisplay.stageParameters.sittingToStandingTransform);
                 this.areaSize.x = this.vrDisplay.stageParameters.sizeX;
                 this.areaSize.z = this.vrDisplay.stageParameters.sizeZ;

@@ -9,21 +9,16 @@ import Avatar from './Avatar';
 import ViveController from './ViveController';
 
 export default class AvatarPrimary extends Avatar {
-    constructor(scene) {
-        super();
+    constructor() {
+        super(true);
 
-        // Hide you own glasess
-        this.visible = false;
-
-        scene.add(this);
-
-        this.controllers = scene ? [
+        this.controllers = [
             new ViveController(0),
             new ViveController(1)
-        ]: [];
+        ];
 
         this.controllers.forEach((c)=> {
-            scene.add(c);
+            this.add(c);
         });
 
         // These represent transformations based on user input
@@ -59,6 +54,7 @@ export default class AvatarPrimary extends Avatar {
         }
 
         this.updateMatrix();
+        this.updateMatrixWorld();
 
         // TODO: Pose also has velocity and acceleration
         // which we want to save for sharing:
@@ -68,6 +64,14 @@ export default class AvatarPrimary extends Avatar {
     update() {
         this.controllers.forEach((c)=> {
             c.update();
+            if(c.isThumbpadPressed()) {
+                let axes = c.getAxes();
+                if(axes[1] > 0){
+                    this.moveForward(0.01);
+                } else {
+                    this.moveBackward(0.01);
+                }
+            }
         });
     }
 

@@ -49,8 +49,8 @@ export default class ViveController extends Object3D {
         if(gamepad && gamepad.pose) {
             //  Position and orientation.
             const pose = gamepad.pose;
-            this.position.fromArray(pose.position);
-            this.quaternion.fromArray(pose.orientation);
+            pose.position && this.position.fromArray(pose.position);
+            pose.orientation && this.quaternion.fromArray(pose.orientation);
             this.matrix.compose(this.position, this.quaternion, this.scale);
             this.matrixWorldNeedsUpdate = true;
             this.updateMatrixWorld();
@@ -68,8 +68,8 @@ export default class ViveController extends Object3D {
             for(let key in ButtomMap) {
                 const val = ButtomMap[key];
                 const gamepadPressed = gamepad.buttons[val].pressed;
-                if(this.isPressed[key] !== gamepadPressed) {
-                    this.isPressed[key] = gamepadPressed;
+                if(this.isPressed[val] !== gamepadPressed) {
+                    this.isPressed[val] = gamepadPressed;
                     const type = key + (gamepadPressed ? 'down' : 'up');
                     this.dispatchEvent({type});
                 }

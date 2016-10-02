@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Object3D, OBJLoader } from 'three';
 
 export default class Avatar extends Object3D {
-    constructor() {
+    constructor(hideGlasses) {
         super();
 
         this.userId = null;
@@ -25,6 +25,10 @@ export default class Avatar extends Object3D {
             obj.position.z = 1.8 * scale;
             obj.scale.set(scale, scale, scale);
             this.add(obj);
+
+            if(hideGlasses) {
+                obj.visible = false;
+            }
             this.glasses = obj;
         });
 
