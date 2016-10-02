@@ -16,20 +16,25 @@ export default class TouchScreen {
 
     touchstart(event) {
         for(const touch of event.changedTouches) {
-            touches[touch.identifier] = Object.assign({}, touch);
+            this.touches[touch.identifier] = {
+                screenY: touch.screenY
+            };
         }
     }
 
     touchmove(event) {
         for(const touch of event.changedTouches) {
-            deltaY += touch.screenY - this.touches[touch.identifier].screenY;
-            touches[touch.identifier] = Object.assign({}, touch);
+            console.log('touchmove', touch.identifier, touch.screenY, this.touches[touch.identifier], this.touches[touch.identifier].screenY);
+            this.deltaY += touch.screenY - this.touches[touch.identifier].screenY;
+            this.touches[touch.identifier] = {
+                screenY: touch.screenY
+            };
         }
     }
 
     touchend(event) {
         for(const touch of event.changedTouches) {
-            delete touches[touch.identifier];
+            delete this.touches[touch.identifier];
         }
     }
 

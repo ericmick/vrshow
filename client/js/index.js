@@ -37,7 +37,6 @@ const peering = window.peering = new Peering((dataChannel) => {
 
 
     dataChannel.addEventListener('message', (event) => {
-        console.log(event, event.data.byteLength);
         somebody.fromBlob(event.data);
     });
     dataChannel.addEventListener('close', (event) => {
@@ -152,7 +151,7 @@ function render() {
     if (keyboard.isPressed('d')) {
         user.turnRight(delta * 0.02);
     }
-    user.moveForward(touchScreen.consumeDeltaY);
+    user.moveForward(touchScreen.consumeDeltaY() * 0.01);
     user.update();
     vrRenderer.render(scene, camera);
 }
@@ -165,5 +164,6 @@ Object.assign(window, {
     user,
     vrRenderer,
     peering,
-    scene
+    scene,
+    touchScreen
 });
