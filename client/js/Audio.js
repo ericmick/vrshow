@@ -20,9 +20,9 @@ export default class Audio {
 
     setPosition(vector) {
         if(this.panner) {
-            panner.positionX = vector.x;
-            panner.positionY = vector.y;
-            panner.positionZ = vector.z;
+            this.panner.positionX = vector.x;
+            this.panner.positionY = vector.y;
+            this.panner.positionZ = vector.z;
         }
     }
 
