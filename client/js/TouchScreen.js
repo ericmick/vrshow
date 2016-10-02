@@ -24,7 +24,6 @@ export default class TouchScreen {
 
     touchmove(event) {
         for(const touch of event.changedTouches) {
-            console.log('touchmove', touch.identifier, touch.screenY, this.touches[touch.identifier], this.touches[touch.identifier].screenY);
             this.deltaY += touch.screenY - this.touches[touch.identifier].screenY;
             this.touches[touch.identifier] = {
                 screenY: touch.screenY
