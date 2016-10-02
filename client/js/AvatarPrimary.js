@@ -54,6 +54,7 @@ export default class AvatarPrimary extends Avatar {
             this.head.quaternion.set(0,0,0,1);
         }
 
+        this.head.updateMatrix();
         this.updateMatrixWorld();
 
         // TODO: Pose also has velocity and acceleration
@@ -83,7 +84,8 @@ export default class AvatarPrimary extends Avatar {
 
     moveBackward(distance) {
         const v = new THREE.Vector3(0, 0, distance);
-        v.applyQuaternion(this.quaternion);
+        const q = new Quaternion().setFromRotationMatrix(this.head.matrixWorld);
+        v.applyQuaternion(q);
         this.position.add(v);
         this.updateMatrix();
     }
