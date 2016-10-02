@@ -41,9 +41,8 @@ const peering = window.peering = new Peering((peer) => {
     scene.add(somebody);
     const messageHandler = (event) => {
         somebody.fromBlob(event.data);
-        if(somebody.position && user.position && peer.audio) {
+        if(somebody.position && peer.audio) {
             peer.audio.setPosition(somebody.position);
-            peer.audio.setListener(user.position, user.quaternion);
         }
     };
     peer.dataChannel.addEventListener('message', messageHandler);

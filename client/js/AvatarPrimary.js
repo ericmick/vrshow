@@ -7,6 +7,7 @@
 import { Vector3, Quaternion, OBJLoader } from 'three';
 import Avatar from './Avatar';
 import ViveController from './ViveController';
+import Audio from './Audio';
 
 export default class AvatarPrimary extends Avatar {
     constructor(onMenu) {
@@ -62,6 +63,8 @@ export default class AvatarPrimary extends Avatar {
         this.head.updateMatrix();
         this.updateMatrixWorld();
         this.head.updateMatrixWorld();
+        
+        Audio.setListener(this.head.matrixWorld);
 
         // TODO: Pose also has velocity and acceleration
         // which we want to save for sharing:
@@ -100,6 +103,7 @@ export default class AvatarPrimary extends Avatar {
             this.linearVelocity.copy(v);
         }
         this.updateMatrix();
+        Audio.setListener(this.head.matrixWorld);
     }
 
     moveForward(distance) {
@@ -111,6 +115,7 @@ export default class AvatarPrimary extends Avatar {
         const q = new THREE.Quaternion().setFromAxisAngle(axis, angle);
         this.quaternion.multiply(q);
         this.updateMatrix();
+        Audio.setListener(this.head.matrixWorld);
     }
 
     turnRight(angle) {

@@ -147,7 +147,7 @@ export default class Peering {
         const returnConnection = () => {
             return connection;
         };
-        return audio.getStream().then((stream) => {
+        return Audio.getStream().then((stream) => {
             connection.addStream(stream);
         }).then(returnConnection).catch(returnConnection);
     }

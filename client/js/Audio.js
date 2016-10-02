@@ -1,19 +1,17 @@
 export default class Audio {
     constructor() {
         console.log('initializing audio');
-        this.context = new window.AudioContext();
-        this.peers = {};
         navigator.mediaDevices.getUserMedia({audio: true}).then((stream) => {
-            this.stream = stream;
+            Audio.stream = stream;
         });
     }
 
-    getStream() {
-        if(this.stream) {
-            return new Promise((resolve, reject) => resolve(this.stream));
+    static getStream() {
+        if(Audio.stream) {
+            return new Promise((resolve, reject) => resolve(Audio.stream));
         }
         return navigator.mediaDevices.getUserMedia({audio: true}).then((stream) => {
-            this.stream = stream;
+            Audio.stream = stream;
             return stream;
         });
     }
@@ -24,20 +22,27 @@ export default class Audio {
         }
     }
 
-    setListener(position, orientation) {
-        const listener = this.context.listener;
+    static setListener(matrixWorld) {
+        const position = new THREE.Vector3().setFromMatrixPosition(matrixWorld);
+        const listener = Audio.context.listener;
         listener.positionX.value = position.x;
         listener.positionY.value = position.y;
         listener.positionZ.value = position.z;
+        const orientation = new THREE.Quaternion().setFromRotationMatrix(matrixWorld);
         const forward = new THREE.Vector3(0, 0, -1);
         forward.applyQuaternion(orientation);
         listener.forwardX.value = forward.x;
         listener.forwardY.value = forward.y;
         listener.forwardZ.value = forward.z;
+        const up = new THREE.Vector3(0, 1, 0);
+        up.applyQuaternion(orientation);
+        listener.upX.value = up.x;
+        listener.upY.value = up.y;
+        listener.upZ.value = up.z;
     }
 
     playStream(stream) {
-        const context = this.context;
+        const context = Audio.context;
         const player = new window.Audio();
         player.muted = true;
         player.srcObject = stream;
@@ -48,3 +53,5 @@ export default class Audio {
         this.panner.connect(context.destination);
     }
 }
+
+Audio.context = new window.AudioContext();
