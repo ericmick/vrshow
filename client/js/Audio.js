@@ -33,6 +33,6 @@ export default class Audio {
         const source = context.createMediaStreamSource(stream);
         this.panner = context.createPanner();
         source.connect(this.panner);
-        panner.connect(context.destination);
+        this.panner.connect(context.destination);
     }
 }
