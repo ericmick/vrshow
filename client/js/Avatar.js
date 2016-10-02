@@ -55,6 +55,16 @@ export default class Avatar extends Object3D {
             dataView.setFloat32(offset, this.head.matrix.elements[i]);
             offset += 4;
         }
+        
+        // Linear velocity
+        if (this.linearVelocity) {
+            for (let i = 0; i < 3; i++) {
+                dataView.setFloat32(offset, this.linearVelocity.getComponent(i));
+                offset += 4;
+            }
+        } else {
+            offset += 12;
+        }
 
         // Color
         dataView.setUint8(offset++, this.color.r * 255);
@@ -69,31 +79,39 @@ export default class Avatar extends Object3D {
             throw new Error('Blob serialization error.')
         }
 
-        var i, offset = 0;
+        let offset = 0;
         const dataView = new DataView(buffer, 0);
 
         // Body
-        for (i = 0; i < 16; i++) {
+        for (let i = 0; i < 16; i++) {
             this.matrix.elements[i] = dataView.getFloat32(offset);
             offset += 4;
         }
 
         // Head
-        for (i = 0; i < 16; i++) {
+        for (let i = 0; i < 16; i++) {
             this.head.matrix.elements[i] = dataView.getFloat32(offset);
             offset += 4;
         }
-
+        
+        // Linear velocity
+        this.linearVelocity = new THREE.Vector3();
+        for (let i = 0; i < 3; i++) {
+            this.linearVelocity.setComponent(i, dataView.getFloat32(offset));
+            offset += 4;
+        }
+        
         // Color
         this.color.r = dataView.getUint8(offset++) / 255;
         this.color.g = dataView.getUint8(offset++) / 255;
         this.color.b = dataView.getUint8(offset++) / 255;
 
         this.matrixWorldNeedsUpdate = true;
+        this.head.matrixWorldNeedsUpdate = true;
     }
 
     getBlobByteLength() {
         // The expected array buffer size to use
-        return 2*(16 * 4) + 3;
+        return 2*(16 * 4) + 3 * 4 + 3;
     }
 }

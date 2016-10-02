@@ -28,6 +28,7 @@ export default class AvatarPrimary extends Avatar {
         });
 
         this.pose = null;
+        this.linearVelocity = new THREE.Vector3();
 
         // Place head above the floor
         //this.translateY(defaultUserHeight);
@@ -53,9 +54,14 @@ export default class AvatarPrimary extends Avatar {
         } else {
             this.head.quaternion.set(0,0,0,1);
         }
+        
+        if(this.pose && this.pose.linearVelocity) {
+            this.linearVelocity.fromArray(this.pose.linearVelocity);
+        }
 
         this.head.updateMatrix();
         this.updateMatrixWorld();
+        this.head.updateMatrixWorld();
 
         // TODO: Pose also has velocity and acceleration
         // which we want to save for sharing:
@@ -87,6 +93,12 @@ export default class AvatarPrimary extends Avatar {
         const q = new Quaternion().setFromRotationMatrix(this.head.matrixWorld);
         v.applyQuaternion(q);
         this.position.add(v);
+        if(this.pose && this.pose.linearVelocity) {
+            this.linearVelocity.fromArray(this.pose.linearVelocity);
+            this.linearVelocity.add(v);
+        } else {
+            this.linearVelocity.copy(v);
+        }
         this.updateMatrix();
     }
 

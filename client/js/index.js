@@ -124,21 +124,22 @@ function init() {
 function render() {
     vrRenderer.requestAnimationFrame(render);
     const delta = clock.getDelta() * 60;
+    const limit = room.geometry.parameters.width / 2;
 
-    for ( var i = 0; i < room.children.length; i ++ ) {
-        var cube = room.children[ i ];
+    for ( let i = 0; i < room.children.length; i ++ ) {
+        let cube = room.children[ i ];
         if ( cube.geometry instanceof THREE.BoxGeometry === false ) continue;
         // cube.position.add( cube.userData.velocity );
-        if ( cube.position.x < - 3 || cube.position.x > 3 ) {
-            cube.position.x = THREE.Math.clamp( cube.position.x, - 3, 3 );
+        if ( cube.position.x < - limit || cube.position.x > limit ) {
+            cube.position.x = THREE.Math.clamp( cube.position.x, - limit, limit );
             cube.userData.velocity.x = - cube.userData.velocity.x;
         }
-        if ( cube.position.y < - 3 || cube.position.y > 3 ) {
-            cube.position.y = THREE.Math.clamp( cube.position.y, - 3, 3 );
+        if ( cube.position.y < - limit || cube.position.y > limit ) {
+            cube.position.y = THREE.Math.clamp( cube.position.y, - limit, limit );
             cube.userData.velocity.y = - cube.userData.velocity.y;
         }
-        if ( cube.position.z < - 3 || cube.position.z > 3 ) {
-            cube.position.z = THREE.Math.clamp( cube.position.z, - 3, 3 );
+        if ( cube.position.z < - limit || cube.position.z > limit ) {
+            cube.position.z = THREE.Math.clamp( cube.position.z, - limit, limit );
             cube.userData.velocity.z = - cube.userData.velocity.z;
         }
         cube.position.x += cube.userData.velocity.x * delta;
@@ -147,6 +148,13 @@ function render() {
         cube.rotation.x += cube.userData.velocity.x * delta;
         cube.rotation.y += cube.userData.velocity.y * delta;
         cube.rotation.z += cube.userData.velocity.z * delta;
+    }
+    
+    for (let i = 0; i < scene.children.length; i++) {
+        let object = scene.children[i];
+        if (object instanceof Avatar && object.linearVelocity) {
+            object.head.position.addScaledVector(object.linearVelocity, delta);
+        }
     }
 
     if (keyboard.isPressed('w')) {
