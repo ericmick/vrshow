@@ -39,21 +39,18 @@ $colorIndicator.style.backgroundColor = `#${user.color.getHexString()}`;
 const peering = window.peering = new Peering((peer) => {
     const somebody = new Avatar();
     scene.add(somebody);
-
-    peer.dataChannel.addEventListener('message', (event) => {
+    const messageHandler = (event) => {
         somebody.fromBlob(event.data);
-        if (somebody.position && user.position && peer.audio) {
-            const audioPosition = new THREE.Vector3();
-            audioPosition.subVectors(somebody.position, user.position);
-            if (user.quaternion) {
-                audioPosition.applyQuaternion(user.quaternion);
-            }
-            peer.audio.setPosition(audioPosition);
+        if(somebody.position && user.position && peer.audio) {
+            peer.audio.setPosition(somebody.position);
+            peer.audio.setListener(user.position, user.quaternion);
         }
-    });
+    };
+    peer.dataChannel.addEventListener('message', messageHandler);
     peer.dataChannel.addEventListener('close', (event) => {
         // remove avatar from scene
         scene.remove(somebody);
+        peer.dataChannel.removeEventListener('message', messageHandler);
     });
 });
 

@@ -27,27 +27,32 @@ export default class AvatarPrimary extends Avatar {
         this.userPosition = new Vector3();
         this.userOrientation = new Quaternion();
 
+        this.pose = null;
 
         // Place head above the floor
-        // this.position.setY(defaultUserHeight);
+        this.translateY(defaultUserHeight);
     }
 
-    // Pose may be undefined when not in VR
+    // Pose may be undefined
     updatePose(pose) {
+        if (pose) {
+            // save pose to use when updating based on
+            // userPosition or userOrientation
+            this.pose = pose;
+        }
 
         // Position may be false if tracking currently
         // unavailable or null if not supported as
         // in Cardboard
-        if(pose && pose.position) {
-            this.position.fromArray(pose.position);
+        if(this.pose && this.pose.position) {
+            this.position.fromArray(this.pose.position);
             this.position.add(this.userPosition);
         } else {
             this.position.copy(this.userPosition);
-            this.position.y += defaultUserHeight;
         }
 
-        if(pose && pose.orientation) {
-            this.quaternion.fromArray(pose.orientation);
+        if(this.pose && this.pose.orientation) {
+            this.quaternion.fromArray(this.pose.orientation);
             this.quaternion.multiply(this.userOrientation);
         } else {
             this.quaternion.copy(this.userOrientation);
@@ -84,6 +89,7 @@ export default class AvatarPrimary extends Avatar {
             v.applyQuaternion(this.userOrientation);
         }
         this.userPosition.add(v);
+        this.updatePose();
     }
 
     moveForward(distance) {
@@ -94,6 +100,7 @@ export default class AvatarPrimary extends Avatar {
         const axis = new THREE.Vector3(0, 1, 0);
         const q = new THREE.Quaternion().setFromAxisAngle(axis, angle);
         this.userOrientation.multiply(q);
+        this.updatePose();
     }
 
     turnRight(angle) {

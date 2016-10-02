@@ -73,6 +73,10 @@ export default class Avatar extends Object3D {
             offset += 4;
         }
 
+        // update properties after manual matrix change
+        this.position.setFromMatrixPosition(this.matrix);
+        this.quaternion.setFromRotationMatrix(this.matrix);
+
         this.color.r = dataView.getUint8(offset) / 255;
         offset++;
         this.color.g = dataView.getUint8(offset) / 255;

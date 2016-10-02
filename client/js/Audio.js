@@ -24,6 +24,18 @@ export default class Audio {
         }
     }
 
+    setListener(position, orientation) {
+        const listener = this.context.listener;
+        listener.positionX.value = position.x;
+        listener.positionY.value = position.y;
+        listener.positionZ.value = position.z;
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyQuaternion(orientation);
+        listener.forwardX.value = forward.x;
+        listener.forwardY.value = forward.y;
+        listener.forwardZ.value = forward.z;
+    }
+
     playStream(stream) {
         const context = this.context;
         const player = new window.Audio();
