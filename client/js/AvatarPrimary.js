@@ -9,7 +9,7 @@ import Avatar from './Avatar';
 import ViveController from './ViveController';
 
 export default class AvatarPrimary extends Avatar {
-    constructor() {
+    constructor(onMenu) {
         super(true);
 
         this.controllers = [
@@ -19,18 +19,18 @@ export default class AvatarPrimary extends Avatar {
 
         this.controllers.forEach((c)=> {
             this.add(c);
-        });
 
-        // These represent transformations based on user input
-        // *not* from the VR pose, i.e. keyboard events, touch
-        // events, teleportation, interactions with the virtual world.
-        this.userPosition = new Vector3();
-        this.userOrientation = new Quaternion();
+            c.addEventListener('menudown', () => {
+                if(typeof onMenu === 'function') {
+                    onMenu();
+                }
+            });
+        });
 
         this.pose = null;
 
         // Place head above the floor
-        this.translateY(defaultUserHeight);
+        //this.translateY(defaultUserHeight);
     }
 
     // Pose may be undefined
@@ -45,20 +45,15 @@ export default class AvatarPrimary extends Avatar {
         // unavailable or null if not supported as
         // in Cardboard
         if(this.pose && this.pose.position) {
-            this.position.fromArray(this.pose.position);
-            this.position.add(this.userPosition);
-        } else {
-            this.position.copy(this.userPosition);
+            this.head.position.fromArray(this.pose.position);
         }
 
         if(this.pose && this.pose.orientation) {
-            this.quaternion.fromArray(this.pose.orientation);
-            this.quaternion.multiply(this.userOrientation);
+            this.head.quaternion.fromArray(this.pose.orientation);
         } else {
-            this.quaternion.copy(this.userOrientation);
+            this.head.quaternion.set(0,0,0,1);
         }
 
-        this.updateMatrix();
         this.updateMatrixWorld();
 
         // TODO: Pose also has velocity and acceleration
@@ -71,10 +66,16 @@ export default class AvatarPrimary extends Avatar {
             c.update();
             if(c.isThumbpadPressed()) {
                 let axes = c.getAxes();
-                if(axes[1] > 0){
+                if(axes[1] > 0.5){
                     this.moveForward(0.01);
-                } else {
+                } else if(axes[1] < -0.5){
                     this.moveBackward(0.01);
+                }
+
+                if(axes[0] > 0.5){
+                    this.turnRight(0.02);
+                } else if(axes[0] < -0.5){
+                    this.turnLeft(0.02);
                 }
             }
         });
@@ -82,14 +83,9 @@ export default class AvatarPrimary extends Avatar {
 
     moveBackward(distance) {
         const v = new THREE.Vector3(0, 0, distance);
-        if(this.quaternion) {
-            // this.quaternion includes pose and userOrientation
-            v.applyQuaternion(this.quaternion);
-        } else {
-            v.applyQuaternion(this.userOrientation);
-        }
-        this.userPosition.add(v);
-        this.updatePose();
+        v.applyQuaternion(this.quaternion);
+        this.position.add(v);
+        this.updateMatrix();
     }
 
     moveForward(distance) {
@@ -99,8 +95,8 @@ export default class AvatarPrimary extends Avatar {
     turnLeft(angle) {
         const axis = new THREE.Vector3(0, 1, 0);
         const q = new THREE.Quaternion().setFromAxisAngle(axis, angle);
-        this.userOrientation.multiply(q);
-        this.updatePose();
+        this.quaternion.multiply(q);
+        this.updateMatrix();
     }
 
     turnRight(angle) {

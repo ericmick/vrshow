@@ -51,9 +51,8 @@ export default class ViveController extends Object3D {
             const pose = gamepad.pose;
             pose.position && this.position.fromArray(pose.position);
             pose.orientation && this.quaternion.fromArray(pose.orientation);
-            this.matrix.compose(this.position, this.quaternion, this.scale);
+            this.updateMatrix();
             this.matrixWorldNeedsUpdate = true;
-            this.updateMatrixWorld();
             this.visible = true;
 
             //  Thumbpad touch surface

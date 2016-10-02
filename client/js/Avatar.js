@@ -5,14 +5,21 @@ import * as THREE from 'three';
 import { Object3D, OBJLoader } from 'three';
 
 export default class Avatar extends Object3D {
-    constructor(hideGlasses) {
+    constructor(isPrimary) {
         super();
 
         this.userId = null;
+        this.color = new THREE.Color(Math.random() * 0xffffff);
+
+        this.head = new Object3D();
+        this.add(this.head);
+
+        if(isPrimary) {
+            // Hide head from self
+            this.head.visible = false;
+        }
 
         this.matrixAutoUpdate = false;
-
-        this.color = new THREE.Color(Math.random() * 0xffffff);
 
         const loader = new OBJLoader();
         loader.load('models/glasses.obj', (obj) => {
@@ -24,16 +31,8 @@ export default class Avatar extends Object3D {
             obj.position.x = -18.4 * scale;
             obj.position.z = 1.8 * scale;
             obj.scale.set(scale, scale, scale);
-            this.add(obj);
-
-            if(hideGlasses) {
-                obj.visible = false;
-            }
-            this.glasses = obj;
+            this.head.add(obj);
         });
-
-        // Place head above the floor
-        // this.position.setY(defaultUserHeight);
     }
 
     toBlob(buffer) {
@@ -45,17 +44,22 @@ export default class Avatar extends Object3D {
         let i, offset = 0;
         const dataView = new DataView(buffer, 0);
 
+        // Body
         for (i = 0; i < 16; i++) {
             dataView.setFloat32(offset, this.matrix.elements[i]);
             offset += 4;
         }
 
-        dataView.setUint8(offset, this.color.r * 255);
-        offset++;
-        dataView.setUint8(offset, this.color.g * 255);
-        offset++;
-        dataView.setUint8(offset, this.color.b * 255);
+        // Head
+        for (i = 0; i < 16; i++) {
+            dataView.setFloat32(offset, this.head.matrix.elements[i]);
+            offset += 4;
+        }
 
+        // Color
+        dataView.setUint8(offset++, this.color.r * 255);
+        dataView.setUint8(offset++, this.color.g * 255);
+        dataView.setUint8(offset++, this.color.b * 255);
 
         return buffer;
     }
@@ -68,26 +72,28 @@ export default class Avatar extends Object3D {
         var i, offset = 0;
         const dataView = new DataView(buffer, 0);
 
+        // Body
         for (i = 0; i < 16; i++) {
             this.matrix.elements[i] = dataView.getFloat32(offset);
             offset += 4;
         }
 
-        // update properties after manual matrix change
-        this.position.setFromMatrixPosition(this.matrix);
-        this.quaternion.setFromRotationMatrix(this.matrix);
+        // Head
+        for (i = 0; i < 16; i++) {
+            this.head.matrix.elements[i] = dataView.getFloat32(offset);
+            offset += 4;
+        }
 
-        this.color.r = dataView.getUint8(offset) / 255;
-        offset++;
-        this.color.g = dataView.getUint8(offset) / 255;
-        offset++;
-        this.color.b = dataView.getUint8(offset) / 255;
+        // Color
+        this.color.r = dataView.getUint8(offset++) / 255;
+        this.color.g = dataView.getUint8(offset++) / 255;
+        this.color.b = dataView.getUint8(offset++) / 255;
 
         this.matrixWorldNeedsUpdate = true;
     }
 
     getBlobByteLength() {
         // The expected array buffer size to use
-        return 16 * 4 + 3;
+        return 2*(16 * 4) + 3;
     }
 }

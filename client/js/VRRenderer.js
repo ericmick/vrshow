@@ -194,8 +194,8 @@ export default class VRRenderer {
 
     updateCameraLocation(camera) {
         // Lock camera to avatar head
-        camera.position.copy(this.avatar.getWorldPosition());
-        camera.quaternion.copy(this.avatar.getWorldQuaternion());
+        camera.position.copy(this.avatar.head.getWorldPosition());
+        camera.quaternion.copy(this.avatar.head.getWorldQuaternion());
         camera.updateMatrixWorld();
     }
 

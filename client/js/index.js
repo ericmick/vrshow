@@ -32,7 +32,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
-const user = new AvatarPrimary();
+const user = new AvatarPrimary(() => vrRenderer.resetPose());
 scene.add(user);
 // Indicate the color of your avatar
 $colorIndicator.style.backgroundColor = `#${user.color.getHexString()}`;
@@ -91,9 +91,10 @@ let room;
 function init() {
 
     room = new THREE.Mesh(
-        new THREE.BoxGeometry( 6, 6, 6, 8, 8, 8 ),
-        new THREE.MeshBasicMaterial( { color: 0x404040, wireframe: true } )
+        new THREE.BoxGeometry( 18, 18, 18, 20, 20, 20 ),
+        new THREE.MeshBasicMaterial( { color: 0x40AB40, wireframe: true } )
     );
+    room.rotateY(Math.PI/4);
     scene.add(room);
 
     var light = new THREE.DirectionalLight( 0xffffff );
