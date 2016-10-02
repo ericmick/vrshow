@@ -33,11 +33,13 @@ renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
 const user = new AvatarPrimary(() => vrRenderer.resetPose());
+const otherAvatars = [];
 scene.add(user);
 // Indicate the color of your avatar
 $colorIndicator.style.backgroundColor = `#${user.color.getHexString()}`;
 const peering = window.peering = new Peering((peer) => {
     const somebody = new Avatar();
+    otherAvatars.push(somebody);
     scene.add(somebody);
     const messageHandler = (event) => {
         somebody.fromBlob(event.data);
@@ -48,6 +50,7 @@ const peering = window.peering = new Peering((peer) => {
     peer.dataChannel.addEventListener('message', messageHandler);
     peer.dataChannel.addEventListener('close', (event) => {
         // remove avatar from scene
+        otherAvatars.splice(otherAvatars.indexOf(somebody), 1);
         scene.remove(somebody);
         peer.dataChannel.removeEventListener('message', messageHandler);
     });
@@ -146,11 +149,8 @@ function render() {
         cube.rotation.z += cube.userData.velocity.z * delta;
     }
     
-    for (let i = 0; i < scene.children.length; i++) {
-        let object = scene.children[i];
-        if (object instanceof Avatar && object.linearVelocity) {
-            object.head.position.addScaledVector(object.linearVelocity, delta);
-        }
+    for (const avatar of otherAvatars) {
+        avatar.update(delta);
     }
 
     if (keyboard.isPressed('w')) {
@@ -166,7 +166,7 @@ function render() {
         user.turnRight(delta * 0.02);
     }
     user.moveForward(touchScreen.consumeDeltaY() * 0.005);
-    user.update();
+    user.update(delta);
     vrRenderer.render(scene, camera);
 
     peering.send(user.toBlob());

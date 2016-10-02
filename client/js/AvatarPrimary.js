@@ -30,6 +30,7 @@ export default class AvatarPrimary extends Avatar {
 
         this.pose = null;
         this.linearVelocity = new THREE.Vector3();
+        this.angularVelocity = new THREE.Vector3();
 
         // Place head above the floor
         //this.translateY(defaultUserHeight);
@@ -53,6 +54,10 @@ export default class AvatarPrimary extends Avatar {
         if(pose && pose.linearVelocity) {
             this.linearVelocity.fromArray(pose.linearVelocity);
         }
+        
+        if(this.pose && this.pose.angularVelocity) {
+            this.angularVelocity.fromArray(this.pose.angularVelocity);
+        }
 
         this.head.updateMatrix();
         this.head.updateMatrixWorld(true);
@@ -63,21 +68,21 @@ export default class AvatarPrimary extends Avatar {
         //   https://w3c.github.io/webvr/#interface-vrpose
     }
 
-    update() {
+    update(delta) {
         this.controllers.forEach((c)=> {
             c.update();
             if(c.isThumbpadPressed()) {
                 let axes = c.getAxes();
                 if(axes[1] > 0.5){
-                    this.moveForward(0.01);
+                    this.moveForward(delta * 0.01);
                 } else if(axes[1] < -0.5){
-                    this.moveBackward(0.01);
+                    this.moveBackward(delta * 0.01);
                 }
 
                 if(axes[0] > 0.5){
-                    this.turnRight(0.02);
+                    this.turnRight(delta * 0.02);
                 } else if(axes[0] < -0.5){
-                    this.turnLeft(0.02);
+                    this.turnLeft(delta * 0.02);
                 }
             }
         });

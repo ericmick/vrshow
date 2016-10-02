@@ -67,6 +67,12 @@ export default class Avatar extends Object3D {
             dataView.setFloat32(offset, this.linearVelocity.getComponent(i));
             offset += 4;
         }
+        
+        // Angular velocity
+        for (let i = 0; i < 3; i++) {
+            dataView.setFloat32(offset, this.angularVelocity.getComponent(i));
+            offset += 4;
+        }
 
         // Color
         dataView.setUint8(offset++, this.color.r * 255);
@@ -102,7 +108,14 @@ export default class Avatar extends Object3D {
             this.linearVelocity.setComponent(i, dataView.getFloat32(offset));
             offset += 4;
         }
-
+        
+        // Angular velocity
+        this.angularVelocity = new THREE.Vector3();
+        for (let i = 0; i < 3; i++) {
+            this.angularVelocity.setComponent(i, dataView.getFloat32(offset));
+            offset += 4;
+        }
+        
         // Color
         this.color.r = dataView.getUint8(offset++) / 255;
         this.color.g = dataView.getUint8(offset++) / 255;
@@ -116,6 +129,30 @@ export default class Avatar extends Object3D {
 
     getBlobByteLength() {
         // The expected array buffer size to use
-        return 2*(16 * 4) + 3 * 4 + 3;
+        return 2*(16 * 4) + 2*(3 * 4) + 3;
+    }
+    
+    update(delta) {
+        for (let i = 0; i < scene.children.length; i++) {
+            let object = scene.children[i];
+            if (object instanceof Avatar && object.linearVelocity) {
+                const d = new THREE.Vector3().addScaledVector(object.linearVelocity, delta);
+                object.head.matrix.multiply(
+                    new THREE.Matrix4().makeTranslation(d.x, d.y, d.z)
+                );
+            }
+        }
+
+        for (let i = 0; i < scene.children.length; i++) {
+            let object = scene.children[i];
+            if (object instanceof Avatar && object.angularVelocity) {
+                const d = new THREE.Euler().setFromVector3(
+                    new THREE.Vector3().addScaledVector(object.angularVelocity, delta)
+                );
+                object.head.matrix.multiply(
+                    new THREE.Matrix4().makeRotationFromEuler(d.x, d.y, d.z)
+                );
+            }
+        }
     }
 }
