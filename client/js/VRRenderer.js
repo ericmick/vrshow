@@ -32,6 +32,7 @@ export default class VRRenderer {
 
         // Size of play area
         this.areaSize = { x: 0, z: 0 };
+        this.standingMatrix = new Matrix4();
 
         /*
             Initialize
@@ -167,7 +168,7 @@ export default class VRRenderer {
             this.updateCameraLocation(camera);
 
             // TODO: Handle standing matrix
-            if(false && this.vrDisplay.stageParameters) {
+            if(this.vrDisplay.stageParameters) {
                 this.standingMatrix.fromArray(this.vrDisplay.stageParameters.sittingToStandingTransform);
                 this.areaSize.x = this.vrDisplay.stageParameters.sizeX;
                 this.areaSize.z = this.vrDisplay.stageParameters.sizeZ;

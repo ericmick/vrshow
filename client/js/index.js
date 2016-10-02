@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Scene, WebGLRenderer, PerspectiveCamera} from 'three'
 import VRRenderer from './VRRenderer';
 import Avatar from './Avatar';
+import AvatarPrimary from './AvatarPrimary';
 import Peering from './Peering';
 import Keyboard from './Keyboard';
 import TouchScreen from './TouchScreen';
@@ -9,6 +10,7 @@ import TouchScreen from './TouchScreen';
 const $error = document.getElementById("error-container");
 const $vrToggle = document.getElementById("vr-toggle");
 const $resetPose = document.getElementById("reset-pose");
+const $colorIndicator = document.getElementById("color-indicator");
 
 function showError(msg) {
     $error.innerHTML = msg;
@@ -30,7 +32,10 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
-const user = new Avatar(scene);
+const user = new AvatarPrimary();
+scene.add(user);
+// Indicate the color of your avatar
+$colorIndicator.style.backgroundColor = `#${user.color.getHexString()}`;
 const peering = window.peering = new Peering((peer) => {
     const somebody = new Avatar();
     scene.add(somebody);

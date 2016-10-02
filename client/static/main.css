@@ -67,3 +67,13 @@ canvas {
     text-align: center;
     display: none;
 }
+
+.circle {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 5;
+}
