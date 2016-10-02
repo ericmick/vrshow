@@ -18,6 +18,14 @@ export default class Audio {
         });
     }
 
+    setPosition(vector) {
+        if(this.panner) {
+            panner.positionX = vector.x;
+            panner.positionY = vector.y;
+            panner.positionZ = vector.z;
+        }
+    }
+
     playStream(stream) {
         const context = this.context;
         const player = new window.Audio();
@@ -25,6 +33,8 @@ export default class Audio {
         player.srcObject = stream;
         player.play();
         const source = context.createMediaStreamSource(stream);
-        source.connect(context.destination);
+        this.panner = context.createPanner();
+        source.connect(this.panner);
+        panner.connect(context.destination);
     }
 }

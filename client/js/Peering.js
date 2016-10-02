@@ -1,12 +1,9 @@
 import Audio from './Audio';
 
 export default class Peering {
-    constructor(onReceiveDataChannel) {
+    constructor(onPeer) {
         console.log('initializing peering');
-        var audio = new Audio();
-        this.getAudioStream = () => audio.getStream();
-        this.onReceiveAudioStream = (stream) => audio.playStream(stream);
-        this.onReceiveDataChannel = onReceiveDataChannel;
+        this.onPeer = onPeer;
         this.peers = {};
         this.connect();
     }
@@ -124,18 +121,19 @@ export default class Peering {
             socket.emit('icecandidate', message);
             console.log('sent icecandidate', message);
         });
+        const audio = this.peers[target].audio = new Audio();
         connection.addEventListener('track', (event) => {
             console.log('track', event);
-            this.onReceiveAudioStream(event.streams[0]);
+            audio.playStream(event.streams[0]);
         });
         connection.addEventListener('addstream', (event) => {
             console.log('addstream', event);
-            this.onReceiveAudioStream(event.stream);
+            audio.playStream(event.stream);
         });
         connection.addEventListener('datachannel', (event) => {
             console.log('datachannel', event);
             this.peers[target].dataChannel = event.channel;
-            this.onReceiveDataChannel(event.channel);
+            this.onPeer(this.peers[target]);
         });
         if(needsDataChannel) {
             console.log('createDataChannel', 'avatar');
@@ -143,13 +141,13 @@ export default class Peering {
             this.peers[target].dataChannel = dataChannel;
             dataChannel.addEventListener('open', (event) => {
                 console.log('datachannel open', event);
-                this.onReceiveDataChannel(dataChannel);
+                this.onPeer(this.peers[target]);
             });
         }
         const returnConnection = () => {
             return connection;
         };
-        return this.getAudioStream().then((stream) => {
+        return audio.getStream().then((stream) => {
             connection.addStream(stream);
         }).then(returnConnection).catch(returnConnection);
     }

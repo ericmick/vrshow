@@ -31,15 +31,19 @@ renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
 const user = new Avatar(scene);
-const peering = window.peering = new Peering((dataChannel) => {
+const peering = window.peering = new Peering((peer) => {
     const somebody = new Avatar();
     scene.add(somebody);
 
-
-    dataChannel.addEventListener('message', (event) => {
+    peer.dataChannel.addEventListener('message', (event) => {
         somebody.fromBlob(event.data);
+        if (somebody.position && user.position && peer.audio) {
+            const audioPosition = new THREE.Vector3();
+            audioPosition.subVectors(somebody.position, user.position);
+            peer.audio.setPosition(audioPosition);
+        }
     });
-    dataChannel.addEventListener('close', (event) => {
+    peer.dataChannel.addEventListener('close', (event) => {
         // remove avatar from scene
         scene.remove(somebody);
     });
