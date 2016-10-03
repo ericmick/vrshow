@@ -39,6 +39,9 @@ export default class Avatar extends Object3D {
 
             this.glasses = obj;
         });
+        
+        this.linearVelocity = new THREE.Vector3();
+        this.angularVelocity = new THREE.Vector3();
     }
 
     toBlob(buffer) {
@@ -134,25 +137,20 @@ export default class Avatar extends Object3D {
     
     update(delta) {
         for (let i = 0; i < scene.children.length; i++) {
-            let object = scene.children[i];
-            if (object instanceof Avatar && object.linearVelocity) {
-                const d = new THREE.Vector3().addScaledVector(object.linearVelocity, delta);
-                object.head.matrix.multiply(
-                    new THREE.Matrix4().makeTranslation(d.x, d.y, d.z)
-                );
-            }
+            const d = new THREE.Vector3().addScaledVector(this.linearVelocity, delta);
+            this.head.matrix.multiply(
+                new THREE.Matrix4().makeTranslation(d.x, d.y, d.z)
+            );
+            this.head.updateMatrixWorld(true);
         }
 
         for (let i = 0; i < scene.children.length; i++) {
-            let object = scene.children[i];
-            if (object instanceof Avatar && object.angularVelocity) {
-                const d = new THREE.Euler().setFromVector3(
-                    new THREE.Vector3().addScaledVector(object.angularVelocity, delta)
-                );
-                object.head.matrix.multiply(
-                    new THREE.Matrix4().makeRotationFromEuler(d.x, d.y, d.z)
-                );
-            }
+            const d = new THREE.Euler().setFromVector3(
+                new THREE.Vector3().addScaledVector(this.angularVelocity, delta)
+            );
+            this.head.matrix.multiply(
+                new THREE.Matrix4().makeRotationFromEuler(d.x, d.y, d.z)
+            );
         }
     }
 }

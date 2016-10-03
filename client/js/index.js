@@ -45,7 +45,7 @@ const peering = window.peering = new Peering((peer) => {
         somebody.fromBlob(event.data);
         if(peer.audio) {
             peer.audio.setPosition(
-                new THREE.Vector3().getFromMatrixPosition(somebody.head.worldMatrix)
+                new THREE.Vector3().setFromMatrixPosition(somebody.head.matrixWorld)
             );
         }
     };
@@ -57,8 +57,6 @@ const peering = window.peering = new Peering((peer) => {
         peer.dataChannel.removeEventListener('message', messageHandler);
     });
 });
-
-
 
 const vrRenderer = new VRRenderer(user, renderer, onVrChange, showError);
 const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
@@ -155,16 +153,16 @@ function render() {
         avatar.update(delta);
     }
 
-    if (keyboard.isPressed('w')) {
+    if (keyboard.isPressed('w') || keyboard.isPressed('W')) {
         user.moveForward(delta);
     }
-    if (keyboard.isPressed('a')) {
+    if (keyboard.isPressed('a') || keyboard.isPressed('A')) {
         user.turnLeft(delta);
     }
-    if (keyboard.isPressed('s')) {
+    if (keyboard.isPressed('s') || keyboard.isPressed('S')) {
         user.moveBackward(delta);
     }
-    if (keyboard.isPressed('d')) {
+    if (keyboard.isPressed('d') || keyboard.isPressed('D')) {
         user.turnRight(delta);
     }
     user.moveForward(touchScreen.consumeDeltaY() * 0.01);
