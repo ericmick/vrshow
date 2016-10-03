@@ -74,15 +74,15 @@ export default class AvatarPrimary extends Avatar {
             if(c.isThumbpadPressed()) {
                 let axes = c.getAxes();
                 if(axes[1] > 0.5){
-                    this.moveForward(delta * 0.01);
+                    this.moveForward(delta);
                 } else if(axes[1] < -0.5){
-                    this.moveBackward(delta * 0.01);
+                    this.moveBackward(delta);
                 }
 
                 if(axes[0] > 0.5){
-                    this.turnRight(delta * 0.02);
+                    this.turnRight(delta);
                 } else if(axes[0] < -0.5){
-                    this.turnLeft(delta * 0.02);
+                    this.turnLeft(delta);
                 }
             }
         });

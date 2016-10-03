@@ -43,8 +43,10 @@ const peering = window.peering = new Peering((peer) => {
     scene.add(somebody);
     const messageHandler = (event) => {
         somebody.fromBlob(event.data);
-        if(somebody.position && peer.audio) {
-            peer.audio.setPosition(somebody.position);
+        if(peer.audio) {
+            peer.audio.setPosition(
+                new THREE.Vector3().getFromMatrixPosition(somebody.head.worldMatrix)
+            );
         }
     };
     peer.dataChannel.addEventListener('message', messageHandler);
@@ -113,16 +115,16 @@ function init() {
         object.scale.y = Math.random() + 0.5;
         object.scale.z = Math.random() + 0.5;
         object.userData.velocity = new THREE.Vector3();
-        object.userData.velocity.x = Math.random() * 0.01 - 0.005;
-        object.userData.velocity.y = Math.random() * 0.01 - 0.005;
-        object.userData.velocity.z = Math.random() * 0.01 - 0.005;
+        object.userData.velocity.x = Math.random() - 0.5;
+        object.userData.velocity.y = Math.random() - 0.5;
+        object.userData.velocity.z = Math.random() - 0.5;
         room.add( object );
     }
 }
 
 function render() {
     vrRenderer.requestAnimationFrame(render);
-    const delta = clock.getDelta() * 60;
+    const delta = clock.getDelta();
     const limit = room.geometry.parameters.width / 2;
 
     for ( let i = 0; i < room.children.length; i ++ ) {
@@ -154,18 +156,18 @@ function render() {
     }
 
     if (keyboard.isPressed('w')) {
-        user.moveForward(delta * 0.01);
+        user.moveForward(delta);
     }
     if (keyboard.isPressed('a')) {
-        user.turnLeft(delta * 0.02);
+        user.turnLeft(delta);
     }
     if (keyboard.isPressed('s')) {
-        user.moveBackward(delta * 0.01);
+        user.moveBackward(delta);
     }
     if (keyboard.isPressed('d')) {
-        user.turnRight(delta * 0.02);
+        user.turnRight(delta);
     }
-    user.moveForward(touchScreen.consumeDeltaY() * 0.005);
+    user.moveForward(touchScreen.consumeDeltaY() * 0.01);
     user.update(delta);
     vrRenderer.render(scene, camera);
 
