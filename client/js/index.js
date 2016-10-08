@@ -6,6 +6,7 @@ import AvatarPrimary from './AvatarPrimary';
 import Peering from './Peering';
 import Keyboard from './Keyboard';
 import TouchScreen from './TouchScreen';
+import Replay from './Replay';
 
 const $error = document.getElementById("error-container");
 const $vrToggle = document.getElementById("vr-toggle");
@@ -42,21 +43,23 @@ const peering = window.peering = new Peering((peer) => {
     otherAvatars.push(somebody);
     scene.add(somebody);
     const messageHandler = (event) => {
-        somebody.fromBlob(event.data);
+        somebody.fromBlob(event.detail.data);
         if(peer.audio) {
             peer.audio.setPosition(
                 new THREE.Vector3().setFromMatrixPosition(somebody.head.matrixWorld)
             );
         }
     };
-    peer.dataChannel.addEventListener('message', messageHandler);
-    peer.dataChannel.addEventListener('close', (event) => {
+    peer.addEventListener('message', messageHandler);
+    peer.addEventListener('close', (event) => {
         // remove avatar from scene
         otherAvatars.splice(otherAvatars.indexOf(somebody), 1);
         scene.remove(somebody);
-        peer.dataChannel.removeEventListener('message', messageHandler);
+        peer.removeEventListener('message', messageHandler);
     });
 });
+
+const replay = new Replay(peering);
 
 const vrRenderer = new VRRenderer(user, renderer, onVrChange, showError);
 const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
@@ -181,5 +184,6 @@ Object.assign(window, {
     vrRenderer,
     peering,
     scene,
-    touchScreen
+    touchScreen,
+    replay
 });

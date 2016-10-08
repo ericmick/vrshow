@@ -1,11 +1,13 @@
+import Peer from './Peer';
 import Audio from './Audio';
 
 export default class Peering {
-    constructor(onPeer) {
+    constructor(onPeer, context = window) {
         console.log('initializing peering');
         this.onPeer = onPeer;
         this.peers = {};
         this.connect();
+        this.element = context.document.createElement('a');
     }
 
     connect() {
@@ -78,7 +80,7 @@ export default class Peering {
             });
         }
         const socket = this.socket;
-        this.peers[target] = {};
+        this.peers[target] = new Peer(target);
         const connection = this.peers[target].connection = new RTCPeerConnection({
             iceServers: [{
                 urls: ['stun:stun.l.google.com:19302']
@@ -143,6 +145,18 @@ export default class Peering {
                 console.log('datachannel open', event);
                 this.onPeer(this.peers[target]);
             });
+            dataChannel.addEventListener('message', (event) => {
+                this.triggerEvent('message', {
+                    target: target,
+                    data: event.data
+                });
+                this.peers[target].triggerEvent('message', {
+                    data: event.data
+                });
+            });
+            dataChannel.addEventListener('close', (event) => {
+                this.peers[target].triggerEvent('close');
+            });
         }
         const returnConnection = () => {
             return connection;
@@ -150,6 +164,29 @@ export default class Peering {
         return Audio.getStream().then((stream) => {
             connection.addStream(stream);
         }).then(returnConnection).catch(returnConnection);
+    }
+    
+    triggerEvent(type, detail) {
+        var event = new CustomEvent(type, {detail: detail});
+        this.element.dispatchEvent(event);
+    }
+    
+    addEventListener(...args) {
+        return this.element.addEventListener.apply(this.element, args);
+    }
+    
+    removeEventListener(...args) {
+        return this.element.removeEventListener.apply(this.element, args);
+    }
+    
+    receive(message) {
+        const target = message.target || 'self';
+        if(!this.peers[target]) {
+            this.peers[target] = new Peer(target);
+            this.onPeer(this.peers[target]);
+        }
+        const peer = this.peers[target];
+        peer.triggerEvent('message', message);
     }
 
     send(data) {
@@ -159,5 +196,8 @@ export default class Peering {
                 channel.send(data);
             }
         }
+        this.triggerEvent('send', {
+            data: data
+        });
     }
 }
