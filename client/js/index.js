@@ -34,6 +34,7 @@ renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
 const user = new AvatarPrimary(() => vrRenderer.resetPose());
+const userBuffer = new ArrayBuffer(user.getBlobByteLength());
 const otherAvatars = [];
 scene.add(user);
 // Indicate the color of your avatar
@@ -101,6 +102,9 @@ function init() {
 
     var light = new THREE.DirectionalLight( 0xffffff );
     light.position.set( 1, 1, 1 ).normalize();
+    scene.add(light);
+    
+    light = new THREE.AmbientLight(0x505050);
     scene.add(light);
 
     var geometry = new THREE.BoxGeometry( 0.15, 0.15, 0.15 );
@@ -172,7 +176,8 @@ function render() {
     user.update(delta);
     vrRenderer.render(scene, camera);
 
-    peering.send(user.toBlob());
+    user.toBlob(userBuffer);
+    peering.send(userBuffer);
 }
 
 init();

@@ -3,6 +3,7 @@
  */
 import * as THREE from 'three';
 import { Object3D, OBJLoader } from 'three';
+import ViveController from './ViveController';
 
 export default class Avatar extends Object3D {
     constructor(isPrimary) {
@@ -10,6 +11,15 @@ export default class Avatar extends Object3D {
 
         this.userId = null;
         this.color = new THREE.Color(Math.random() * 0xffffff);
+
+        this.controllers = [
+            new ViveController(0),
+            new ViveController(1)
+        ];
+        
+        this.controllers.forEach((c) => {
+            this.add(c);
+        });
 
         this.head = new Object3D();
         this.head.matrixAutoUpdate = false;
@@ -44,23 +54,21 @@ export default class Avatar extends Object3D {
         this.angularVelocity = new THREE.Vector3();
     }
 
-    toBlob(buffer) {
-        buffer = buffer || new ArrayBuffer(this.getBlobByteLength());
-        if (buffer.byteLength != this.getBlobByteLength()) {
+    toBlob(buffer, offset = 0) {
+        if (buffer.byteLength < offset + this.getBlobByteLength()) {
             throw new Error('Blob serialization error.')
         }
 
-        let i, offset = 0;
         const dataView = new DataView(buffer, 0);
 
         // Body
-        for (i = 0; i < 16; i++) {
+        for (let i = 0; i < 16; i++) {
             dataView.setFloat32(offset, this.matrix.elements[i]);
             offset += 4;
         }
 
         // Head
-        for (i = 0; i < 16; i++) {
+        for (let i = 0; i < 16; i++) {
             dataView.setFloat32(offset, this.head.matrix.elements[i]);
             offset += 4;
         }
@@ -81,16 +89,18 @@ export default class Avatar extends Object3D {
         dataView.setUint8(offset++, this.color.r * 255);
         dataView.setUint8(offset++, this.color.g * 255);
         dataView.setUint8(offset++, this.color.b * 255);
+        
+        offset = this.controllers[0].toBlob(buffer, offset);
+        offset = this.controllers[1].toBlob(buffer, offset);
 
-        return buffer;
+        return offset;
     }
 
-    fromBlob(buffer) {
-        if (!buffer || buffer.byteLength != this.getBlobByteLength()) {
+    fromBlob(buffer, offset = 0) {
+        if (!buffer || buffer.byteLength + offset < this.getBlobByteLength()) {
             throw new Error('Blob serialization error.')
         }
 
-        let offset = 0;
         const dataView = new DataView(buffer, 0);
 
         // Body
@@ -123,16 +133,21 @@ export default class Avatar extends Object3D {
         this.color.r = dataView.getUint8(offset++) / 255;
         this.color.g = dataView.getUint8(offset++) / 255;
         this.color.b = dataView.getUint8(offset++) / 255;
+        
+        offset = this.controllers[0].fromBlob(buffer, offset);
+        offset = this.controllers[1].fromBlob(buffer, offset);
 
         this.updateMatrixWorld(true);
         this.head.updateMatrixWorld(true);
         this.glasses && this.glasses.updateMatrixWorld(true);
-
+        
+        return offset;
     }
 
     getBlobByteLength() {
         // The expected array buffer size to use
-        return 2*(16 * 4) + 2*(3 * 4) + 3;
+        return 2*(16 * 4) + 2*(3 * 4) + 3 +
+            this.controllers[0].getBlobByteLength() * 2;
     }
     
     update(delta) {

@@ -6,21 +6,13 @@
  */
 import { Vector3, Quaternion, OBJLoader } from 'three';
 import Avatar from './Avatar';
-import ViveController from './ViveController';
 import Audio from './Audio';
 
 export default class AvatarPrimary extends Avatar {
     constructor(onMenu) {
         super(true);
 
-        this.controllers = [
-            new ViveController(0),
-            new ViveController(1)
-        ];
-
-        this.controllers.forEach((c)=> {
-            this.add(c);
-
+        this.controllers.forEach((c) => {
             c.addEventListener('menudown', () => {
                 if(typeof onMenu === 'function') {
                     onMenu();

@@ -13,6 +13,8 @@ const ButtomMap = {
 
 const VIVE_CONTROLLER_MODEL_DIR = 'models/vive-controller/';
 
+const identityMatrix = new Matrix4();
+
 export default class ViveController extends Object3D {
     constructor(controllerNum) {
         super();
@@ -41,6 +43,9 @@ export default class ViveController extends Object3D {
             controller.material.specularMap = loader.load('onepointfive_spec.png');
             this.add(obj);
         });
+        
+        // hide controller until it connects
+        this.visible = false;
     }
 
     update() {
@@ -80,6 +85,33 @@ export default class ViveController extends Object3D {
 
     getAxes() {
         return this.axes;
+    }
+
+    toBlob(buffer, offset) {
+        const dataView = new DataView(buffer, 0);
+        for (let i = 0; i < 16; i++) {
+            dataView.setFloat32(offset, this.matrix.elements[i]);
+            offset += 4;
+        }
+        return offset;
+    }
+
+    fromBlob(buffer, offset) {
+        const dataView = new DataView(buffer, 0);
+        for (let i = 0; i < 16; i++) {
+            this.matrix.elements[i] = dataView.getFloat32(offset);
+            // show controllers if they have connected
+            if (this.matrix.elements[i] != identityMatrix.elements[i]) {
+                this.visible = true;
+            }
+            offset += 4;
+        }
+        return offset;
+    }
+
+    getBlobByteLength() {
+        // The expected array buffer size to use
+        return 16 * 4;
     }
 }
 

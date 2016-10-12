@@ -17,7 +17,8 @@ export default class Peering {
             const target = message.name;
             if (this.peers[target]) {
                 this.peers[target].connection.close();
-                this.peers[target] = null;
+                this.peers[target].triggerEvent('close');
+                delete this.peers[target];
             }
             this.makePeerConnection(message.name, true).then((connection) => {
                 connection.createOffer().then((offer) => {
@@ -102,7 +103,10 @@ export default class Peering {
                             connection.close();
                         }
                         console.log('discarding connection', target, connection);
-                        delete this.peers[target];
+                        if(this.peers[target]) {
+                            this.peers[target].triggerEvent('close');
+                            delete this.peers[target];
+                        }
                     }
                 }, 3000);
             } else if(disconnectionTimeout) {
@@ -135,28 +139,13 @@ export default class Peering {
         connection.addEventListener('datachannel', (event) => {
             console.log('datachannel', event);
             this.peers[target].dataChannel = event.channel;
-            this.onPeer(this.peers[target]);
+            this.handleDataChannel(target, event.channel);
         });
         if(needsDataChannel) {
             console.log('createDataChannel', 'avatar');
             let dataChannel = connection.createDataChannel('avatar');
             this.peers[target].dataChannel = dataChannel;
-            dataChannel.addEventListener('open', (event) => {
-                console.log('datachannel open', event);
-                this.onPeer(this.peers[target]);
-            });
-            dataChannel.addEventListener('message', (event) => {
-                this.triggerEvent('message', {
-                    target: target,
-                    data: event.data
-                });
-                this.peers[target].triggerEvent('message', {
-                    data: event.data
-                });
-            });
-            dataChannel.addEventListener('close', (event) => {
-                this.peers[target].triggerEvent('close');
-            });
+            this.handleDataChannel(target, dataChannel);
         }
         const returnConnection = () => {
             return connection;
@@ -164,6 +153,25 @@ export default class Peering {
         return Audio.getStream().then((stream) => {
             connection.addStream(stream);
         }).then(returnConnection).catch(returnConnection);
+    }
+    
+    handleDataChannel(target, dataChannel) {
+        dataChannel.addEventListener('open', (event) => {
+            console.log('datachannel open', event);
+            this.onPeer(this.peers[target]);
+        });
+        dataChannel.addEventListener('message', (event) => {
+            this.triggerEvent('message', {
+                target: target,
+                data: event.data
+            });
+            this.peers[target].triggerEvent('message', {
+                data: event.data
+            });
+        });
+        dataChannel.addEventListener('close', (event) => {
+            this.peers[target].triggerEvent('close');
+        });
     }
     
     triggerEvent(type, detail) {
