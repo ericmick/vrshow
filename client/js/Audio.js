@@ -25,20 +25,13 @@ export default class Audio {
     static setListener(matrixWorld) {
         const position = new THREE.Vector3().setFromMatrixPosition(matrixWorld);
         const listener = Audio.context.listener;
-        listener.positionX.value = position.x;
-        listener.positionY.value = position.y;
-        listener.positionZ.value = position.z;
+        listener.setPosition(position.x, position.y, position.z);
         const orientation = new THREE.Quaternion().setFromRotationMatrix(matrixWorld);
         const forward = new THREE.Vector3(0, 0, -1);
         forward.applyQuaternion(orientation);
-        listener.forwardX.value = forward.x;
-        listener.forwardY.value = forward.y;
-        listener.forwardZ.value = forward.z;
         const up = new THREE.Vector3(0, 1, 0);
         up.applyQuaternion(orientation);
-        listener.upX.value = up.x;
-        listener.upY.value = up.y;
-        listener.upZ.value = up.z;
+        listener.setOrientation(forward.x, forward.y, forward.z, up.x, up.y, up.z);
     }
 
     playStream(stream) {

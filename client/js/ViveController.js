@@ -87,7 +87,7 @@ export default class ViveController extends Object3D {
         return this.axes;
     }
 
-    toBlob(buffer, offset) {
+    toBuffer(buffer, offset) {
         const dataView = new DataView(buffer, 0);
         for (let i = 0; i < 16; i++) {
             dataView.setFloat32(offset, this.matrix.elements[i]);
@@ -96,7 +96,7 @@ export default class ViveController extends Object3D {
         return offset;
     }
 
-    fromBlob(buffer, offset) {
+    fromBuffer(buffer, offset) {
         const dataView = new DataView(buffer, 0);
         for (let i = 0; i < 16; i++) {
             this.matrix.elements[i] = dataView.getFloat32(offset);
@@ -109,7 +109,7 @@ export default class ViveController extends Object3D {
         return offset;
     }
 
-    getBlobByteLength() {
+    getBufferByteLength() {
         // The expected array buffer size to use
         return 16 * 4;
     }

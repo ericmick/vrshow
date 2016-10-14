@@ -34,7 +34,7 @@ renderer.autoClear = true;
 document.body.appendChild(renderer.domElement);
 
 const user = new AvatarPrimary(() => vrRenderer.resetPose());
-const userBuffer = new ArrayBuffer(user.getBlobByteLength());
+const userBuffer = new ArrayBuffer(user.getBufferByteLength());
 const otherAvatars = [];
 scene.add(user);
 // Indicate the color of your avatar
@@ -43,12 +43,23 @@ const peering = window.peering = new Peering((peer) => {
     const somebody = new Avatar();
     otherAvatars.push(somebody);
     scene.add(somebody);
-    const messageHandler = (event) => {
-        somebody.fromBlob(event.detail.data);
+    const readFromBuffer = (buffer) => {
+        somebody.fromBuffer(buffer);
         if(peer.audio) {
             peer.audio.setPosition(
                 new THREE.Vector3().setFromMatrixPosition(somebody.head.matrixWorld)
             );
+        }
+    }
+    const messageHandler = (event) => {
+        if (event.detail.data.constructor.name == 'ArrayBuffer') {
+            readFromBuffer(event.detail.data);
+        } else {
+            var fileReader = new FileReader();
+            fileReader.onload = function() {
+                readFromBuffer(this.result);
+            };
+            fileReader.readAsArrayBuffer(event.detail.data);
         }
     };
     peer.addEventListener('message', messageHandler);
@@ -176,7 +187,7 @@ function render() {
     user.update(delta);
     vrRenderer.render(scene, camera);
 
-    user.toBlob(userBuffer);
+    user.toBuffer(userBuffer);
     peering.send(userBuffer);
 }
 

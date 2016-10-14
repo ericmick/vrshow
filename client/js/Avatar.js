@@ -54,8 +54,8 @@ export default class Avatar extends Object3D {
         this.angularVelocity = new THREE.Vector3();
     }
 
-    toBlob(buffer, offset = 0) {
-        if (buffer.byteLength < offset + this.getBlobByteLength()) {
+    toBuffer(buffer, offset = 0) {
+        if (buffer.byteLength < offset + this.getBufferByteLength()) {
             throw new Error('Blob serialization error.')
         }
 
@@ -90,14 +90,14 @@ export default class Avatar extends Object3D {
         dataView.setUint8(offset++, this.color.g * 255);
         dataView.setUint8(offset++, this.color.b * 255);
         
-        offset = this.controllers[0].toBlob(buffer, offset);
-        offset = this.controllers[1].toBlob(buffer, offset);
+        offset = this.controllers[0].toBuffer(buffer, offset);
+        offset = this.controllers[1].toBuffer(buffer, offset);
 
         return offset;
     }
 
-    fromBlob(buffer, offset = 0) {
-        if (!buffer || buffer.byteLength + offset < this.getBlobByteLength()) {
+    fromBuffer(buffer, offset = 0) {
+        if (!buffer || buffer.byteLength + offset < this.getBufferByteLength()) {
             throw new Error('Blob serialization error.')
         }
 
@@ -134,8 +134,8 @@ export default class Avatar extends Object3D {
         this.color.g = dataView.getUint8(offset++) / 255;
         this.color.b = dataView.getUint8(offset++) / 255;
         
-        offset = this.controllers[0].fromBlob(buffer, offset);
-        offset = this.controllers[1].fromBlob(buffer, offset);
+        offset = this.controllers[0].fromBuffer(buffer, offset);
+        offset = this.controllers[1].fromBuffer(buffer, offset);
 
         this.updateMatrixWorld(true);
         this.head.updateMatrixWorld(true);
@@ -144,10 +144,10 @@ export default class Avatar extends Object3D {
         return offset;
     }
 
-    getBlobByteLength() {
+    getBufferByteLength() {
         // The expected array buffer size to use
         return 2*(16 * 4) + 2*(3 * 4) + 3 +
-            this.controllers[0].getBlobByteLength() * 2;
+            this.controllers[0].getBufferByteLength() * 2;
     }
     
     update(delta) {
