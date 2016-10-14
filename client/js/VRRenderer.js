@@ -5,14 +5,18 @@
  *
  *  WebVR Spec: http://mozvr.github.io/webvr-spec/webvr.html
  */
-
-import { Vector3, Matrix4, Quaternion } from 'three';
+import { Matrix4, WebGLRenderer } from 'three';
 import EyeCamera from './EyeCamera';
 
 export default class VRRenderer {
-    constructor(avatar, renderer, onVrAvailableChange, onError) {
+    constructor(avatar, window, onVrAvailableChange, onError) {
+        const renderer = this.renderer = new WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0xCCCCCC);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.autoClear = true;
+
         this.avatar = avatar;
-        this.renderer = renderer;
         this.onVrAvailableChange = onVrAvailableChange;
         this.onError = onError;
         this.isPresenting = false;
@@ -23,12 +27,15 @@ export default class VRRenderer {
         this.pixelRatio = renderer.getPixelRatio();
         this.rendererSize = renderer.getSize();
         this.rendererUpdateStyle = false;
-        this.canvas = renderer.domElement;
         this.frameData = !!window.VRFrameData ? new VRFrameData() : undefined;
 
         // Cameras for HMD rendering
         this.leftEye = new EyeCamera(EyeCamera.TYPE.LEFT);
         this.rightEye = new EyeCamera(EyeCamera.TYPE.RIGHT);
+
+        // Attach eyes to head
+        this.avatar.head.add(this.leftEye);
+        this.avatar.head.add(this.rightEye);
 
         // Size of play area
         this.areaSize = { x: 0, z: 0 };
@@ -42,7 +49,7 @@ export default class VRRenderer {
         }
 
         this.updateVrDisplay();
-        this.addListeners();
+        this.addListeners(window);
     }
 
     updateVrDisplay() {
@@ -71,7 +78,7 @@ export default class VRRenderer {
         }
     }
 
-    addListeners() {
+    addListeners(window) {
         window.addEventListener('vrdisplaypresentchange', () => this.onVrPresentChange(), false);
         window.addEventListener('onvrdisplayconnect', () => this.updateVrDisplay(), false);
         window.addEventListener('onvrdisplaydisconnect', () => this.updateVrDisplay(), false);
@@ -129,7 +136,7 @@ export default class VRRenderer {
                 resolve();
             } else if(willPresent) {
                 // Request present mode
-                resolve(this.vrDisplay.requestPresent([{ source: this.canvas }]));
+                resolve(this.vrDisplay.requestPresent([{ source: this.renderer.domElement }]));
             } else {
                 // Exit present mode
                 resolve(this.vrDisplay.exitPresent());
@@ -145,27 +152,19 @@ export default class VRRenderer {
         return window.requestAnimationFrame(cb);
     }
 
-    render(scene, camera) {
-        if(this.vrDisplay && this.isPresenting) {
-
+    render(scene, camera, renderTarget, forceClear) {
+        if(this.vrDisplay && this.isPresenting && !renderTarget) {
             const {
                 vrDisplay,
                 renderer,
                 frameData
             } = this;
 
-            if(renderer.autoClear) {
-                renderer.clear();
-            }
-
             vrDisplay.depthNear = camera.near;
             vrDisplay.depthFar = camera.far;
 
             vrDisplay.getFrameData(frameData);
             this.avatar.updatePose(frameData.pose);
-
-            // Update camera from avatar
-            this.updateCameraLocation(camera);
 
             // TODO: Handle standing matrix
             if(false && this.vrDisplay.stageParameters) {
@@ -177,8 +176,8 @@ export default class VRRenderer {
 
             // Render Eyes
             this.renderer.setScissorTest(true);
-            this.leftEye.render(scene, camera, renderer, vrDisplay, frameData);
-            this.rightEye.render(scene, camera, renderer, vrDisplay, frameData);
+            this.renderForEye(scene, this.leftEye);
+            this.renderForEye(scene, this.rightEye);
             this.renderer.setScissorTest(false);
 
             scene.autoUpdate = true;
@@ -187,25 +186,20 @@ export default class VRRenderer {
         } else {
             // Non-VR render
             this.avatar.updatePose();
-            this.updateCameraLocation(camera);
-            this.renderer.render(scene, camera);
+            this.renderer.render(scene, camera, renderTarget, forceClear);
         }
     }
 
-    updateCameraLocation(camera) {
-        // Lock camera to avatar head
-        camera.position.copy(this.avatar.head.getWorldPosition());
-        camera.quaternion.copy(this.avatar.head.getWorldQuaternion());
-        camera.updateMatrixWorld();
+    renderForEye(scene, eye) {
+        const renderRect = eye.getRenderRect(this.renderer.getSize(), this.frameData);
+        this.renderer.setViewport(renderRect.x, renderRect.y, renderRect.width, renderRect.height);
+        this.renderer.setScissor(renderRect.x, renderRect.y, renderRect.width, renderRect.height);
+        this.renderer.render(scene, eye);
     }
 
     resetPose() {
         if(this.vrDisplay) {
             return this.vrDisplay.resetPose();
         }
-    }
-
-    getStandingMatrix() {
-        return this.standingMatrix;
     }
 }

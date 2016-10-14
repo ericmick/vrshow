@@ -1,11 +1,9 @@
 import * as THREE from 'three';
-import { Scene, WebGLRenderer, PerspectiveCamera} from 'three'
+import { Scene, PerspectiveCamera} from 'three'
 import VRRenderer from './VRRenderer';
 import Avatar from './Avatar';
 import AvatarPrimary from './AvatarPrimary';
 import Peering from './Peering';
-import Keyboard from './Keyboard';
-import TouchScreen from './TouchScreen';
 import Replay from './Replay';
 
 const $error = document.getElementById("error-container");
@@ -26,20 +24,23 @@ function updateButtons(supportsVr, isPresenting) {
 }
 
 const scene = new Scene();
-const renderer = new WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0xCCCCCC);
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.autoClear = true;
-document.body.appendChild(renderer.domElement);
+const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+camera.visible = false;
 
-const user = new AvatarPrimary(() => vrRenderer.resetPose());
+const user = new AvatarPrimary(() => renderer.resetPose());
+user.head.add(camera);
+
+const renderer = new VRRenderer(user, window, onVrChange, showError);
+document.body.appendChild(renderer.renderer.domElement);
+
 const userBuffer = new ArrayBuffer(user.getBufferByteLength());
 const otherAvatars = [];
 scene.add(user);
+
 // Indicate the color of your avatar
 $colorIndicator.style.backgroundColor = `#${user.color.getHexString()}`;
-const peering = window.peering = new Peering((peer) => {
+
+const peering = new Peering((peer) => {
     const somebody = new Avatar();
     otherAvatars.push(somebody);
     scene.add(somebody);
@@ -50,7 +51,7 @@ const peering = window.peering = new Peering((peer) => {
                 new THREE.Vector3().setFromMatrixPosition(somebody.head.matrixWorld)
             );
         }
-    }
+    };
     const messageHandler = (event) => {
         if (event.detail.data.constructor.name == 'ArrayBuffer') {
             readFromBuffer(event.detail.data);
@@ -72,10 +73,6 @@ const peering = window.peering = new Peering((peer) => {
 });
 
 const replay = new Replay(peering);
-
-const vrRenderer = new VRRenderer(user, renderer, onVrChange, showError);
-const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-
 const clock = new THREE.Clock();
 
 function onResize () {
@@ -83,7 +80,7 @@ function onResize () {
     const height = window.innerHeight;
     camera.aspect = width/height;
     camera.updateProjectionMatrix();
-    vrRenderer.setSize(width, height);
+    renderer.setSize(width, height);
 }
 window.addEventListener("resize", onResize, false);
 onResize();
@@ -92,17 +89,53 @@ function onVrChange(hasVr, isPresenting) {
     updateButtons(hasVr, isPresenting);
 }
 $vrToggle.onclick = () => {
-    vrRenderer.setPresenting(!vrRenderer.isPresenting);
+    renderer.setPresenting(!renderer.isPresenting);
 };
 $resetPose.onclick = () => {
-    vrRenderer.resetPose();
+    renderer.resetPose();
 };
 
-const keyboard = new Keyboard();
-const touchScreen = new TouchScreen();
+function generateWorld(scene) {
+    const planeWidth = 32,
+          planeHeight = 32;
+    const loader = new THREE.TextureLoader();
 
-let room;
+    const seed = 'tony';
+    const displacementMap = loader.load(`/api/map/${seed}`);
+    const textureMap = loader.load(`/api/texture/${seed}`);
+
+    const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, 512-1, 512-1);
+    const material = new THREE.MeshPhongMaterial({
+        map: textureMap,
+        displacementMap: displacementMap,
+        displacementScale: 5,
+        displacementBias: 0,
+        color: 0xcccccc
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotateX(-Math.PI/2);
+    mesh.position.set(0,-10,0);
+
+    scene.add(mesh);
+}
+
+let room, renderTarget, sceneCamera, plane;
 function init() {
+
+    sceneCamera = new THREE.PerspectiveCamera(80, 16/9, 0.1, 1000);
+    renderTarget = new THREE.WebGLRenderTarget( 512, 512, { format: THREE.RGBFormat } );
+
+    var planelikeGeometry = new THREE.BoxGeometry(2, 2, 2);
+    plane = new THREE.Mesh( planelikeGeometry, new THREE.MeshBasicMaterial({
+        map: renderTarget.texture
+    }));
+    plane.add(sceneCamera);
+    plane.position.set(0,2,-5);
+    plane.rotateY(Math.PI);
+    scene.add(plane);
+
+    generateWorld(scene);
 
     room = new THREE.Mesh(
         new THREE.BoxGeometry( 18, 18, 18, 20, 20, 20 ),
@@ -111,7 +144,13 @@ function init() {
     room.rotateY(Math.PI/4);
     scene.add(room);
 
-    var light = new THREE.DirectionalLight( 0xffffff );
+    var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+    scene.add( light );
+
+    light = new THREE.AmbientLight( 0x404040 ); // soft white light
+    scene.add( light );
+
+    light = new THREE.DirectionalLight( 0xffffff );
     light.position.set( 1, 1, 1 ).normalize();
     scene.add(light);
     
@@ -138,8 +177,8 @@ function init() {
     }
 }
 
-function render() {
-    vrRenderer.requestAnimationFrame(render);
+function renderScene() {
+    renderer.requestAnimationFrame(renderScene);
     const delta = clock.getDelta();
     const limit = room.geometry.parameters.width / 2;
 
@@ -171,35 +210,27 @@ function render() {
         avatar.update(delta);
     }
 
-    if (keyboard.isPressed('w') || keyboard.isPressed('W')) {
-        user.moveForward(delta);
-    }
-    if (keyboard.isPressed('a') || keyboard.isPressed('A')) {
-        user.turnLeft(delta);
-    }
-    if (keyboard.isPressed('s') || keyboard.isPressed('S')) {
-        user.moveBackward(delta);
-    }
-    if (keyboard.isPressed('d') || keyboard.isPressed('D')) {
-        user.turnRight(delta);
-    }
-    user.moveForward(touchScreen.consumeDeltaY() * 0.01);
     user.update(delta);
-    vrRenderer.render(scene, camera);
+
+    plane.visible = false;
+    user.head.visible = true;
+    renderer.render(scene, sceneCamera, renderTarget, true);
+    plane.visible = true;
+    user.head.visible = false;
+    renderer.render(scene, camera);
 
     user.toBuffer(userBuffer);
     peering.send(userBuffer);
 }
 
 init();
-render();
+renderScene();
 
 // debug stuff
 Object.assign(window, {
     user,
-    vrRenderer,
+    renderer,
     peering,
     scene,
-    touchScreen,
     replay
 });

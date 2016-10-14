@@ -7,18 +7,35 @@
 import { Vector3, Quaternion, OBJLoader } from 'three';
 import Avatar from './Avatar';
 import Audio from './Audio';
+import ViveController from './ViveController';
+import Keyboard from './Keyboard';
+import TouchScreen from './TouchScreen';
 
 export default class AvatarPrimary extends Avatar {
     constructor(onMenu) {
         super(true);
 
-        this.controllers.forEach((c) => {
+        // Default user above the ground
+        this.position.set(0, 1.5, 0);
+        this.updateMatrix();
+
+        this.controllers = [
+            new ViveController(0),
+            new ViveController(1)
+        ];
+
+        this.controllers.forEach((c)=> {
+            this.add(c);
+
             c.addEventListener('menudown', () => {
                 if(typeof onMenu === 'function') {
                     onMenu();
                 }
             });
         });
+
+        this.keyboard = new Keyboard();
+        this.touchScreen = new TouchScreen();
 
         this.pose = null;
         this.linearVelocity = new THREE.Vector3();
@@ -47,17 +64,13 @@ export default class AvatarPrimary extends Avatar {
             this.linearVelocity.fromArray(pose.linearVelocity);
         }
         
-        if(this.pose && this.pose.angularVelocity) {
-            this.angularVelocity.fromArray(this.pose.angularVelocity);
+        if(pose && this.pose.angularVelocity) {
+            this.angularVelocity.fromArray(pose.angularVelocity);
         }
 
         this.head.updateMatrix();
         this.head.updateMatrixWorld(true);
         Audio.setListener(this.head.matrixWorld);
-
-        // TODO: Pose also has velocity and acceleration
-        // which we want to save for sharing:
-        //   https://w3c.github.io/webvr/#interface-vrpose
     }
 
     update(delta) {
@@ -78,6 +91,22 @@ export default class AvatarPrimary extends Avatar {
                 }
             }
         });
+
+        const { keyboard, touchScreen } = this;
+
+        if (keyboard.isPressed('w') || keyboard.isPressed('W')) {
+            this.moveForward(delta);
+        }
+        if (keyboard.isPressed('a') || keyboard.isPressed('A')) {
+            this.turnLeft(delta);
+        }
+        if (keyboard.isPressed('s') || keyboard.isPressed('S')) {
+            this.moveBackward(delta);
+        }
+        if (keyboard.isPressed('d') || keyboard.isPressed('D')) {
+            this.turnRight(delta);
+        }
+        this.moveForward(touchScreen.consumeDeltaY() * 0.01);
     }
 
     moveBackward(distance) {

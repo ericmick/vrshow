@@ -14,6 +14,8 @@ process.once('SIGINT', function () {
 
 gulp.task('vendor', function() {
     return gulp.src([
+            './node_modules/seedrandom/seedrandom.min.js',
+            './node_modules/simplex-noise/simplex-noise.min.js',
             './node_modules/three/build/three.min.js',
             './node_modules/three/examples/js/loaders/OBJLoader.js',
             './node_modules/webvr-polyfill/build/webvr-polyfill.js',
