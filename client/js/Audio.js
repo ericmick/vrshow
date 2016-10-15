@@ -47,4 +47,5 @@ export default class Audio {
     }
 }
 
-Audio.context = new window.AudioContext();
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+Audio.context = new AudioContext();

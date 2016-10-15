@@ -116,6 +116,11 @@ export default class ViveController extends Object3D {
 }
 
 function findGamepad(controllerNum) {
+    if(!navigator.getGamepads) {
+        // Not supported on Safari
+        return null;
+    }
+
     // Iterate across gamepads to find
     //  Vive Controllers
     const gamepads = navigator.getGamepads();

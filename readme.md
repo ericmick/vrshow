@@ -1,3 +1,3 @@
 # VR Show Chat Room
 
-Read later.
+Visit the live site: https://live.vrs.how/
