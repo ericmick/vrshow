@@ -15,7 +15,7 @@ export default class TouchScreen {
     }
 
     touchstart(event) {
-        for(const [indx, touch] of Object.entries(event.changedTouches)) {
+        for(const touch of Array.prototype.slice.call(event.changedTouches)) {
             this.touches[touch.identifier] = {
                 screenY: touch.screenY
             };
@@ -23,7 +23,7 @@ export default class TouchScreen {
     }
 
     touchmove(event) {
-        for(const [indx, touch] of Object.entries(event.changedTouches)) {
+        for(const touch of Array.prototype.slice.call(event.changedTouches)) {
             this.deltaY += touch.screenY - this.touches[touch.identifier].screenY;
             this.touches[touch.identifier] = {
                 screenY: touch.screenY
@@ -32,7 +32,7 @@ export default class TouchScreen {
     }
 
     touchend(event) {
-        for(const [indx, touch] of Object.entries(event.changedTouches)) {
+        for(const touch of Array.prototype.slice.call(event.changedTouches)) {
             delete this.touches[touch.identifier];
         }
     }
