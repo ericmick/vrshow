@@ -32,6 +32,7 @@
     "pngjs": "^3.0.0",
     "seedrandom": "^2.4.2",
     "socket.io": "^1.4.8",
+    "stats.js": "^0.16.0",
     "three": "^0.81.2",
     "underscore": "^1.8.3",
     "webpack": "^1.13.2",

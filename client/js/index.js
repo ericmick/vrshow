@@ -11,6 +11,10 @@ const $vrToggle = document.getElementById("vr-toggle");
 const $resetPose = document.getElementById("reset-pose");
 const $colorIndicator = document.getElementById("color-indicator");
 
+var stats = new Stats();
+stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild(stats.dom);
+
 function showError(msg) {
     $error.innerHTML = msg;
     $error.style.display = !!msg ? 'inline' : 'none';
@@ -130,8 +134,9 @@ function init() {
         map: renderTarget.texture
     }));
     monitor.add(sceneCamera);
-    var cameraLight = new THREE.PointLight(0xffffff, 0.5, 20);
-    monitor.add(cameraLight);
+    // TODO: investigate, Camera causing big performance hit
+    // var cameraLight = new THREE.PointLight(0xffffff, 0.5, 20);
+    // monitor.add(cameraLight);
     monitor.position.set(0,2,-5);
     monitor.rotateY(Math.PI);
     scene.add(monitor);
@@ -189,6 +194,8 @@ function init() {
 
 function renderScene() {
     renderer.requestAnimationFrame(renderScene);
+    stats.begin();
+
     const delta = clock.getDelta();
     const limit = room.geometry.parameters.width / 2;
 
@@ -227,10 +234,13 @@ function renderScene() {
     renderer.render(scene, sceneCamera, renderTarget, true);
     monitor.visible = true;
     user.head.visible = false;
+
     renderer.render(scene, camera);
 
     user.toBuffer(userBuffer);
     peering.send(userBuffer);
+
+    stats.end();
 }
 
 init();

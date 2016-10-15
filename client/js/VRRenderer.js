@@ -146,19 +146,21 @@ export default class VRRenderer {
 
     requestAnimationFrame(cb) {
         // TODO: vrDisplay.requestAnimationFrame does not seem to be working yet
-        // const funcToCall = this.vrDisplay && this.isPresenting ? this.vrDisplay.requestAnimationFrame : window.requestAnimationFrame;
-        // return funcToCall(cb);
-
-        return window.requestAnimationFrame(cb);
+        if(this.vrDisplay && this.isPresenting && this.vrDisplay.requestAnimationFrame) {
+            return this.vrDisplay.requestAnimationFrame(cb);
+        } else {
+            return window.requestAnimationFrame(cb);
+        }
     }
 
     render(scene, camera, renderTarget, forceClear) {
-        if(this.vrDisplay && this.isPresenting && !renderTarget) {
-            const {
-                vrDisplay,
-                renderer,
-                frameData
-            } = this;
+        const {
+            vrDisplay,
+            renderer,
+            frameData
+        } = this;
+
+        if(vrDisplay && this.isPresenting && !renderTarget) {
 
             vrDisplay.depthNear = camera.near;
             vrDisplay.depthFar = camera.far;
@@ -175,17 +177,16 @@ export default class VRRenderer {
             }
 
             // Render Eyes
-            this.renderer.setScissorTest(true);
+            renderer.setScissorTest(true);
             this.renderForEye(scene, this.leftEye);
             this.renderForEye(scene, this.rightEye);
-            this.renderer.setScissorTest(false);
+            renderer.setScissorTest(false);
 
             scene.autoUpdate = true;
 
             this.vrDisplay.submitFrame();
         } else {
             // Non-VR render
-            this.avatar.updatePose();
             this.renderer.render(scene, camera, renderTarget, forceClear);
         }
     }
