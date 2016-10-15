@@ -1,4 +1,6 @@
 html {
+    width: 100%;
+    height: 100%;
     box-sizing: border-box;
 }
 
@@ -17,6 +19,7 @@ body {
     min-width: 300px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: #534;
 }
 
 canvas {
@@ -76,4 +79,18 @@ canvas {
     top: 5px;
     right: 5px;
     z-index: 5;
+}
+
+#loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 999;
+    color: #FFF;
+    opacity: 0.9;
+}
+
+#loading > * {
+    margin-left: -50%;
+    margin-top: -50%;
 }

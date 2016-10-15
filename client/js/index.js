@@ -96,44 +96,45 @@ $resetPose.onclick = () => {
 };
 
 function generateWorld(scene) {
-    const planeWidth = 32,
-          planeHeight = 32;
+    const planeWidth = 256,
+          planeHeight = 256;
     const loader = new THREE.TextureLoader();
 
     const seed = 'tony';
     const displacementMap = loader.load(`/api/map/${seed}`);
     const textureMap = loader.load(`/api/texture/${seed}`);
-
     const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, 512-1, 512-1);
     const material = new THREE.MeshPhongMaterial({
         map: textureMap,
         displacementMap: displacementMap,
-        displacementScale: 5,
+        displacementScale: 40,
         displacementBias: 0,
         color: 0xcccccc
     });
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.rotateX(-Math.PI/2);
-    mesh.position.set(0,-10,0);
+    mesh.position.set(0,-30,0);
 
     scene.add(mesh);
 }
 
-let room, renderTarget, sceneCamera, plane;
+let room, renderTarget, sceneCamera, monitor;
 function init() {
 
     sceneCamera = new THREE.PerspectiveCamera(80, 16/9, 0.1, 1000);
     renderTarget = new THREE.WebGLRenderTarget( 512, 512, { format: THREE.RGBFormat } );
 
-    var planelikeGeometry = new THREE.BoxGeometry(2, 2, 2);
-    plane = new THREE.Mesh( planelikeGeometry, new THREE.MeshBasicMaterial({
+    var monitorGeometry = new THREE.BoxGeometry(16/9, 1, 16/9);
+    monitor = new THREE.Mesh( monitorGeometry, new THREE.MeshBasicMaterial({
         map: renderTarget.texture
     }));
-    plane.add(sceneCamera);
-    plane.position.set(0,2,-5);
-    plane.rotateY(Math.PI);
-    scene.add(plane);
+    monitor.add(sceneCamera);
+    var cameraLight = new THREE.PointLight(0xffffff, 0.5, 20);
+    monitor.add(cameraLight);
+    monitor.position.set(0,2,-5);
+    monitor.rotateY(Math.PI);
+    scene.add(monitor);
 
     generateWorld(scene);
 
@@ -141,27 +142,34 @@ function init() {
         new THREE.BoxGeometry( 18, 18, 18, 20, 20, 20 ),
         new THREE.MeshBasicMaterial( { color: 0x40AB40, wireframe: true } )
     );
-    room.rotateY(Math.PI/4);
     scene.add(room);
+    
+    var floor = new THREE.Mesh(
+        new THREE.BoxGeometry(18.5, 36, 18.5, 20, 20, 20),
+        new THREE.MeshLambertMaterial({ color: 0x707070 })
+    );
+    floor.position.set(0, -18, 0);
+    scene.add(floor);
 
-    var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+    var light = new THREE.HemisphereLight( 0xbbbbff, 0x080808, .2 );
     scene.add( light );
 
-    light = new THREE.AmbientLight( 0x404040 ); // soft white light
+    light = new THREE.AmbientLight( 0x101010 ); // soft white light
     scene.add( light );
 
-    light = new THREE.DirectionalLight( 0xffffff );
-    light.position.set( 1, 1, 1 ).normalize();
+    light = new THREE.DirectionalLight( 0x886677 );
+    light.position.set( .5, 1, .5 ).normalize();
     scene.add(light);
     
-    light = new THREE.AmbientLight(0x505050);
+    light = new THREE.PointLight(0xffffff, 0.5, 20);
+    light.position.set( 0, 7, 0 );
     scene.add(light);
 
     var geometry = new THREE.BoxGeometry( 0.15, 0.15, 0.15 );
     for ( var i = 0; i < 50; i ++ ) {
         var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
         object.position.x = Math.random() * 4 - 2;
-        object.position.y = Math.random() * 4 - 2;
+        object.position.y = Math.random() * 2;
         object.position.z = Math.random() * 4 - 2;
         object.rotation.x = Math.random() * 2 * Math.PI;
         object.rotation.y = Math.random() * 2 * Math.PI;
@@ -175,6 +183,8 @@ function init() {
         object.userData.velocity.z = Math.random() - 0.5;
         room.add( object );
     }
+    
+    document.getElementById('loading').style.display = 'none';
 }
 
 function renderScene() {
@@ -190,8 +200,8 @@ function renderScene() {
             cube.position.x = THREE.Math.clamp( cube.position.x, - limit, limit );
             cube.userData.velocity.x = - cube.userData.velocity.x;
         }
-        if ( cube.position.y < - limit || cube.position.y > limit ) {
-            cube.position.y = THREE.Math.clamp( cube.position.y, - limit, limit );
+        if ( cube.position.y <  .1 || cube.position.y > limit ) {
+            cube.position.y = THREE.Math.clamp( cube.position.y, .1, limit );
             cube.userData.velocity.y = - cube.userData.velocity.y;
         }
         if ( cube.position.z < - limit || cube.position.z > limit ) {
@@ -212,10 +222,10 @@ function renderScene() {
 
     user.update(delta);
 
-    plane.visible = false;
+    monitor.visible = false;
     user.head.visible = true;
     renderer.render(scene, sceneCamera, renderTarget, true);
-    plane.visible = true;
+    monitor.visible = true;
     user.head.visible = false;
     renderer.render(scene, camera);
 
