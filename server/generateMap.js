@@ -9,7 +9,7 @@ const cache = [new LRU(5), new LRU(5)];
 const WIDTH = 512;
 const HEIGHT = 512;
 
-const data = fs.readFileSync('./server/terrain.png');
+const data = fs.readFileSync(`${__dirname}/terrain.png`);
 const colorLookup = PNG.sync.read(data);
 
 function getColorPixel(displacementBytes, moistureBytes) {
