@@ -3,6 +3,9 @@ os: linux
 files:
   - source: /
     destination: /home/ec2-user/vrshow
+permissions:
+  - object: /home/ec2-user/vrshow
+    owner: ec2-user
 hooks:
   ApplicationStop:
     - location: bin/ApplicationStop.sh
