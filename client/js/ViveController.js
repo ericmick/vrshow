@@ -11,7 +11,19 @@ const ButtomMap = {
     menu: 3
 };
 
-const VIVE_CONTROLLER_MODEL_DIR = 'models/vive-controller/';
+const ViveModelPromise = new Promise((resolve, reject) => {
+    const VIVE_CONTROLLER_MODEL_DIR = 'models/vive-controller/';
+    const loader = new OBJLoader();
+    loader.setPath(VIVE_CONTROLLER_MODEL_DIR);
+    loader.load('vr_controller_vive_1_5.obj', (obj) => {
+        const loader = new TextureLoader();
+        loader.setPath(VIVE_CONTROLLER_MODEL_DIR);
+        const controller = obj.children[0];
+        controller.material.map = loader.load('onepointfive_texture.png');
+        controller.material.specularMap = loader.load('onepointfive_spec.png');
+        resolve(obj);
+    });
+});
 
 const identityMatrix = new Matrix4();
 
@@ -32,20 +44,14 @@ export default class ViveController extends Object3D {
             const val = ButtomMap[key];
             this[`is${capitalize(key)}Pressed`] = () => this.isPressed[val];
         }
-
-        const loader = new OBJLoader();
-        loader.setPath(VIVE_CONTROLLER_MODEL_DIR);
-        loader.load('vr_controller_vive_1_5.obj', (obj) => {
-            const loader = new TextureLoader();
-            loader.setPath(VIVE_CONTROLLER_MODEL_DIR);
-            const controller = obj.children[0];
-            controller.material.map = loader.load('onepointfive_texture.png');
-            controller.material.specularMap = loader.load('onepointfive_spec.png');
-            this.add(obj);
-        });
         
         // hide controller until it connects
         this.visible = false;
+
+        ViveModelPromise.then((obj)=> {
+            this.add(obj.clone());
+        })
+
     }
 
     update() {
