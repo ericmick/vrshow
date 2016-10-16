@@ -12,16 +12,19 @@
 </head>
 <body>
 
-    <div id="error-container">Error message.</div>
-    <div id="button-container">
+    <div id="error-container" class="hide-for-camera">Error message.</div>
+    <div id="button-container" class="hide-for-camera">
         <button id="vr-toggle">Enter VR</button>
         <button id="reset-pose">Reset Pose</button>
     </div>
 
-    <div id="color-indicator" class="circle"></div>
-    
+    <div id="color-indicator" class="circle hide-for-camera"></div>
+
     <div id="loading">
-        <h1>loading...</h1>
+        <div id="loading-background"></div>
+        <div id="loading-text">
+            <h1>loading...</h1>
+        </div>
     </div>
     
     <script src="vendor/webvr-polyfill.js"></script>

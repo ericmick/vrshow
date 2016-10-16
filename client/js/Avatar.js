@@ -8,7 +8,10 @@ import ViveController from './ViveController';
 export default class Avatar extends Object3D {
     constructor(isPrimary, color) {
         super();
-        
+
+        // Hide avatar until a position update
+        this.visible = false;
+
         this.color = color || new THREE.Color(0xffffff);
         
         this.userId = null;
@@ -108,6 +111,9 @@ export default class Avatar extends Object3D {
             throw new Error('Blob serialization error.')
         }
 
+        // Location received, show avatar
+        this.visible = true;
+
         const dataView = new DataView(buffer, 0);
 
         // Body
@@ -162,23 +168,19 @@ export default class Avatar extends Object3D {
     }
     
     update(delta) {
-        for (let i = 0; i < scene.children.length; i++) {
-            const d = new THREE.Vector3().addScaledVector(this.linearVelocity, delta);
-            this.head.matrix.multiply(
-                new THREE.Matrix4().makeTranslation(d.x, d.y, d.z)
-            );
-            this.head.updateMatrixWorld(true);
-        }
+        let d = new THREE.Vector3().addScaledVector(this.linearVelocity, delta);
+        this.head.matrix.multiply(
+            new THREE.Matrix4().makeTranslation(d.x, d.y, d.z)
+        );
+        this.head.updateMatrixWorld(true);
 
-        for (let i = 0; i < scene.children.length; i++) {
-            const d = new THREE.Euler().setFromVector3(
-                new THREE.Vector3().addScaledVector(this.angularVelocity, delta)
-            );
-            this.head.matrix.multiply(
-                new THREE.Matrix4().makeRotationFromEuler(d.x, d.y, d.z)
-            );
-        }
-        
+        d = new THREE.Euler().setFromVector3(
+            new THREE.Vector3().addScaledVector(this.angularVelocity, delta)
+        );
+        this.head.matrix.multiply(
+            new THREE.Matrix4().makeRotationFromEuler(d.x, d.y, d.z)
+        );
+
         if (this.audio) {
             this.mouth.scale.setY(this.audio.getLevel() + 0.02);
             this.mouth.updateMatrixWorld();

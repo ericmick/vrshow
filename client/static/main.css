@@ -22,6 +22,10 @@ body {
     background: #534;
 }
 
+.camera-mode .hide-for-camera {
+    display: none !important;
+}
+
 canvas {
     position: absolute;
     width: 100%;
@@ -81,7 +85,17 @@ canvas {
     z-index: 5;
 }
 
-#loading {
+#loading-background {
+    background-color: #553344;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 800;
+}
+
+#loading-text {
     position: absolute;
     left: 50%;
     top: 50%;
@@ -90,7 +104,7 @@ canvas {
     opacity: 0.9;
 }
 
-#loading > * {
+#loading-text > * {
     margin-left: -50%;
     margin-top: -50%;
 }
