@@ -146,7 +146,7 @@ export default class Avatar extends Object3D {
         this.color.r = dataView.getUint8(offset++) / 255;
         this.color.g = dataView.getUint8(offset++) / 255;
         this.color.b = dataView.getUint8(offset++) / 255;
-        if (this.glasses & this.glasses.material) {
+        if (this.glasses && this.glasses.material) {
             this.glasses.material.color = this.color;
             this.mouth.material.color = this.color;
         }
