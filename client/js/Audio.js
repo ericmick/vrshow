@@ -4,13 +4,13 @@ export default class Audio {
         this.level = 0;
         this.isPrimary = isPrimary;
         if (isPrimary) {
-            this.getStream().then((stream) => {
+            Audio.getStream().then((stream) => {
                 this.playStream(stream);
             });
         }
     }
     
-    getStream() {
+    static getStream() {
         return new Promise((resolve, reject) => {
             if (Audio.stream) {
                 resolve(Audio.stream);
