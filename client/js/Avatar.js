@@ -6,11 +6,12 @@ import { Object3D, OBJLoader } from 'three';
 import ViveController from './ViveController';
 
 export default class Avatar extends Object3D {
-    constructor(isPrimary) {
+    constructor(isPrimary, color) {
         super();
-
+        
+        this.color = color || 0x000000;
+        
         this.userId = null;
-        this.color = new THREE.Color(Math.random() * 0xffffff);
 
         this.controllers = [
             new ViveController(0),
@@ -23,13 +24,15 @@ export default class Avatar extends Object3D {
 
         this.head = new Object3D();
         this.head.matrixAutoUpdate = false;
+        
+        const geometry = new THREE.PlaneGeometry(0.1, 0.1, 2, 2);
+        const material = new THREE.MeshPhongMaterial({color: 0x000000});
+        this.mouth = new THREE.Mesh(geometry, material);
+        this.mouth.rotation.set(0, Math.PI, 0);
+        this.mouth.position.set(0, -.15, -.05);
+        this.head.add(this.mouth);
 
         this.add(this.head);
-
-        if(isPrimary) {
-            // Hide head from self
-            this.head.visible = false;
-        }
 
         this.matrixAutoUpdate = false;
 
@@ -165,6 +168,14 @@ export default class Avatar extends Object3D {
             );
             this.head.matrix.multiply(
                 new THREE.Matrix4().makeRotationFromEuler(d.x, d.y, d.z)
+            );
+        }
+        
+        if (this.audio) {
+            this.mouth.scale.setY(this.audio.getLevel() + 0.02);
+            this.mouth.updateMatrixWorld();
+            this.audio.setPosition(
+                new THREE.Vector3().setFromMatrixPosition(this.head.matrixWorld)
             );
         }
     }

@@ -46,15 +46,11 @@ $colorIndicator.style.backgroundColor = `#${user.color.getHexString()}`;
 
 const peering = new Peering((peer) => {
     const somebody = new Avatar();
+    somebody.audio = peer.audio;
     otherAvatars.push(somebody);
     scene.add(somebody);
     const readFromBuffer = (buffer) => {
         somebody.fromBuffer(buffer);
-        if(peer.audio) {
-            peer.audio.setPosition(
-                new THREE.Vector3().setFromMatrixPosition(somebody.head.matrixWorld)
-            );
-        }
     };
     const messageHandler = (event) => {
         if (event.detail.data.constructor.name == 'ArrayBuffer') {
@@ -169,25 +165,6 @@ function init() {
     light = new THREE.PointLight(0xffffff, 0.5, 20);
     light.position.set( 0, 7, 0 );
     scene.add(light);
-
-    var geometry = new THREE.BoxGeometry( 0.15, 0.15, 0.15 );
-    for ( var i = 0; i < 50; i ++ ) {
-        var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
-        object.position.x = Math.random() * 4 - 2;
-        object.position.y = Math.random() * 2;
-        object.position.z = Math.random() * 4 - 2;
-        object.rotation.x = Math.random() * 2 * Math.PI;
-        object.rotation.y = Math.random() * 2 * Math.PI;
-        object.rotation.z = Math.random() * 2 * Math.PI;
-        object.scale.x = Math.random() + 0.5;
-        object.scale.y = Math.random() + 0.5;
-        object.scale.z = Math.random() + 0.5;
-        object.userData.velocity = new THREE.Vector3();
-        object.userData.velocity.x = Math.random() - 0.5;
-        object.userData.velocity.y = Math.random() - 0.5;
-        object.userData.velocity.z = Math.random() - 0.5;
-        room.add( object );
-    }
     
     document.getElementById('loading').style.display = 'none';
 }
@@ -197,31 +174,6 @@ function renderScene() {
     stats.begin();
 
     const delta = clock.getDelta();
-    const limit = room.geometry.parameters.width / 2;
-
-    for ( let i = 0; i < room.children.length; i ++ ) {
-        let cube = room.children[ i ];
-        if ( cube.geometry instanceof THREE.BoxGeometry === false ) continue;
-        // cube.position.add( cube.userData.velocity );
-        if ( cube.position.x < - limit || cube.position.x > limit ) {
-            cube.position.x = THREE.Math.clamp( cube.position.x, - limit, limit );
-            cube.userData.velocity.x = - cube.userData.velocity.x;
-        }
-        if ( cube.position.y <  .1 || cube.position.y > limit ) {
-            cube.position.y = THREE.Math.clamp( cube.position.y, .1, limit );
-            cube.userData.velocity.y = - cube.userData.velocity.y;
-        }
-        if ( cube.position.z < - limit || cube.position.z > limit ) {
-            cube.position.z = THREE.Math.clamp( cube.position.z, - limit, limit );
-            cube.userData.velocity.z = - cube.userData.velocity.z;
-        }
-        cube.position.x += cube.userData.velocity.x * delta;
-        cube.position.y += cube.userData.velocity.y * delta;
-        cube.position.z += cube.userData.velocity.z * delta;
-        cube.rotation.x += cube.userData.velocity.x * delta;
-        cube.rotation.y += cube.userData.velocity.y * delta;
-        cube.rotation.z += cube.userData.velocity.z * delta;
-    }
     
     for (const avatar of otherAvatars) {
         avatar.update(delta);

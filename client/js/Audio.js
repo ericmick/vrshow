@@ -1,18 +1,25 @@
 export default class Audio {
-    constructor() {
+    constructor(isPrimary) {
         console.log('initializing audio');
-        navigator.mediaDevices.getUserMedia({audio: true}).then((stream) => {
-            Audio.stream = stream;
-        });
-    }
-
-    static getStream() {
-        if(Audio.stream) {
-            return new Promise((resolve, reject) => resolve(Audio.stream));
+        this.level = 0;
+        this.isPrimary = isPrimary;
+        if (isPrimary) {
+            this.getStream().then((stream) => {
+                this.playStream(stream);
+            });
         }
-        return navigator.mediaDevices.getUserMedia({audio: true}).then((stream) => {
-            Audio.stream = stream;
-            return stream;
+    }
+    
+    getStream() {
+        return new Promise((resolve, reject) => {
+            if (Audio.stream) {
+                resolve(Audio.stream);
+            } else {
+                navigator.mediaDevices.getUserMedia({audio: true}).then((stream) => {
+                    Audio.stream = stream;
+                    resolve(stream);
+                });
+            }
         });
     }
 
@@ -20,6 +27,10 @@ export default class Audio {
         if(this.panner) {
             this.panner.setPosition(vector.x, vector.y, vector.z);
         }
+    }
+    
+    getLevel() {
+        return this.level;
     }
 
     static setListener(matrixWorld) {
@@ -41,9 +52,23 @@ export default class Audio {
         player.srcObject = stream;
         player.play();
         const source = context.createMediaStreamSource(stream);
-        this.panner = context.createPanner();
-        source.connect(this.panner);
-        this.panner.connect(context.destination);
+        const scriptNode = context.createScriptProcessor(256);
+        scriptNode.onaudioprocess = (audioProcessingEvent) => {
+            var inputBuffer = audioProcessingEvent.inputBuffer;
+            var data = inputBuffer.getChannelData(0);
+            var total = 0
+            for (var i = 0; i < data.length; i++) {
+                total += data[i] * data[i];
+            }
+            this.level = Math.sqrt(Math.sqrt(total / data.length));
+        }
+        source.connect(scriptNode);
+        scriptNode.connect(context.destination);
+        if (!this.isPrimary) {
+            this.panner = context.createPanner();
+            source.connect(this.panner);
+            this.panner.connect(context.destination);
+        }
     }
 }
 

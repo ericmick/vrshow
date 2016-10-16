@@ -13,7 +13,7 @@ import TouchScreen from './TouchScreen';
 
 export default class AvatarPrimary extends Avatar {
     constructor(onMenu) {
-        super(true);
+        super(true, new THREE.Color(Math.random() * 0xffffff));
 
         // Default user above the ground
         this.position.set(0, 1.5, 0);
@@ -43,6 +43,8 @@ export default class AvatarPrimary extends Avatar {
 
         // Place head above the floor
         //this.translateY(defaultUserHeight);
+        
+        this.audio = new Audio(true);
     }
 
     // Pose may be undefined
@@ -107,6 +109,14 @@ export default class AvatarPrimary extends Avatar {
             this.turnRight(delta);
         }
         this.moveForward(touchScreen.consumeDeltaY() * 0.01);
+
+        if (this.audio) {
+            this.mouth.scale.setY(this.audio.getLevel() + 0.02);
+            this.mouth.updateMatrixWorld();
+            this.audio.setPosition(
+                new THREE.Vector3().setFromMatrixPosition(this.head.matrixWorld)
+            );
+        }
     }
 
     moveBackward(distance) {
