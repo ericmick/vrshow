@@ -40,7 +40,7 @@ export default class Lobby extends Scene {
 
         // Lighting
         let light;
-        this.add(new THREE.HemisphereLight(0xbbbbff, 0x080808, .2));
+        this.add(new THREE.HemisphereLight(0xffffff, 0xffffff, 1));
         this.add(new THREE.AmbientLight(0x101010)); // soft white light
 
         light = new THREE.DirectionalLight(0x886677);
