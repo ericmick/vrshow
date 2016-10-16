@@ -26,7 +26,9 @@ export default class Avatar extends Object3D {
         this.head.matrixAutoUpdate = false;
         
         const geometry = new THREE.PlaneGeometry(0.1, 0.1, 2, 2);
-        const material = new THREE.MeshPhongMaterial();
+        const material = new THREE.MeshPhongMaterial({
+            side: THREE.DoubleSide
+        });
         this.mouth = new THREE.Mesh(geometry, material);
         this.mouth.rotation.set(0, Math.PI, 0);
         this.mouth.position.set(0, -.15, -.05);
