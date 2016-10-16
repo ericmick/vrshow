@@ -9,7 +9,7 @@ export default class Avatar extends Object3D {
     constructor(isPrimary, color) {
         super();
         
-        this.color = color || 0x000000;
+        this.color = color || new THREE.Color(0xffffff);
         
         this.userId = null;
 
@@ -26,7 +26,7 @@ export default class Avatar extends Object3D {
         this.head.matrixAutoUpdate = false;
         
         const geometry = new THREE.PlaneGeometry(0.1, 0.1, 2, 2);
-        const material = new THREE.MeshPhongMaterial({color: 0x000000});
+        const material = new THREE.MeshPhongMaterial();
         this.mouth = new THREE.Mesh(geometry, material);
         this.mouth.rotation.set(0, Math.PI, 0);
         this.mouth.position.set(0, -.15, -.05);
@@ -39,7 +39,9 @@ export default class Avatar extends Object3D {
         const loader = new OBJLoader();
         loader.load('models/glasses.obj', (obj) => {
             let glasses = obj.children[0];
-            glasses.material.color = this.color;
+            glasses.material = new THREE.MeshPhongMaterial({
+                color: this.color
+            });
 
             let scale = 0.07;
             obj.matrixAutoUpdate = false;
@@ -136,6 +138,10 @@ export default class Avatar extends Object3D {
         this.color.r = dataView.getUint8(offset++) / 255;
         this.color.g = dataView.getUint8(offset++) / 255;
         this.color.b = dataView.getUint8(offset++) / 255;
+        if (this.glasses & this.glasses.material) {
+            this.glasses.material.color = this.color;
+            this.mouth.material.color = this.color;
+        }
         
         offset = this.controllers[0].fromBuffer(buffer, offset);
         offset = this.controllers[1].fromBuffer(buffer, offset);
