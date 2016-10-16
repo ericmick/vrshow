@@ -15,6 +15,8 @@ export default class AvatarPrimary extends Avatar {
     constructor(onMenu) {
         super(true, new THREE.Color(Math.random() * 0xffffff));
 
+        this.visible = true;
+
         // Default user above the ground
         this.position.set(0, 1.5, 0);
         this.updateMatrix();
@@ -161,7 +163,3 @@ export default class AvatarPrimary extends Avatar {
         this.turnLeft(-angle);
     }
 }
-
-// Distance from the users eyes to the floor in meters. Used when
-// the VRDisplay doesn't provide stageParameters.
-const defaultUserHeight = 0.5;

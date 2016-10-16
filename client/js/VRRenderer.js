@@ -145,7 +145,6 @@ export default class VRRenderer {
     }
 
     requestAnimationFrame(cb) {
-        // TODO: vrDisplay.requestAnimationFrame does not seem to be working yet
         if(this.vrDisplay && this.isPresenting && this.vrDisplay.requestAnimationFrame) {
             return this.vrDisplay.requestAnimationFrame(cb);
         } else {
