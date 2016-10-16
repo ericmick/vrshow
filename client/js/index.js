@@ -123,9 +123,11 @@ let room, renderTarget, sceneCamera, monitor;
 function init() {
 
     sceneCamera = new THREE.PerspectiveCamera(80, 16/9, 0.1, 1000);
+    sceneCamera.rotateY(Math.PI);
+    sceneCamera.position.setZ(1);
     renderTarget = new THREE.WebGLRenderTarget( 512, 512, { format: THREE.RGBFormat } );
 
-    var monitorGeometry = new THREE.BoxGeometry(16/9, 1, 16/9);
+    var monitorGeometry = new THREE.BoxGeometry(1, 9/16, 1);
     monitor = new THREE.Mesh( monitorGeometry, new THREE.MeshBasicMaterial({
         map: renderTarget.texture
     }));
@@ -134,7 +136,6 @@ function init() {
     // var cameraLight = new THREE.PointLight(0xffffff, 0.5, 20);
     // monitor.add(cameraLight);
     monitor.position.set(0,2,-5);
-    monitor.rotateY(Math.PI);
     scene.add(monitor);
 
     generateWorld(scene);
