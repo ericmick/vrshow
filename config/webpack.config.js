@@ -10,7 +10,8 @@ module.exports = {
         filename: '[name].js'
     },
     externals: [{
-       'three': 'THREE'
+       'three': 'THREE',
+        'threeX': 'THREEx'
     }],
     module: {
         loaders: [

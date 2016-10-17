@@ -41,6 +41,9 @@ export default class VRRenderer {
         this.areaSize = { x: 0, z: 0 };
         this.standingMatrix = new Matrix4();
 
+        // Enable shadows
+        renderer.shadowMap.enabled = true;
+
         /*
             Initialize
          */

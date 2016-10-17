@@ -2,6 +2,7 @@
  * Class to represent a person in VR.
  */
 import * as THREE from 'three';
+import * as THREEx from 'threeX';
 import { Object3D, Scene } from 'three';
 
 export default class Lobby extends Scene {
@@ -23,33 +24,56 @@ export default class Lobby extends Scene {
         this.monitor.rotateY(Math.PI);
         this.add(this.monitor);
 
-        // Matrix room
-        const room = new THREE.Mesh(
-            new THREE.BoxGeometry( 18, 18, 18, 20, 20, 20 ),
-            new THREE.MeshBasicMaterial({ color: 0x40AB40, wireframe: true })
-        );
-        this.add(room);
-
         // Floor box
         const floor = new THREE.Mesh(
             new THREE.BoxGeometry(18.5, 36, 18.5, 20, 20, 20),
             new THREE.MeshLambertMaterial({ color: 0x707070 })
         );
+        floor.receiveShadow = true;
         floor.position.set(0, -18, 0);
         this.add(floor);
 
         // Lighting
-        let light;
-        this.add(new THREE.HemisphereLight(0xffffff, 0xffffff, 1));
-        this.add(new THREE.AmbientLight(0x101010)); // soft white light
-
-        light = new THREE.DirectionalLight(0x886677);
-        light.position.set(.5, 1, .5).normalize();
+        let light = new THREE.HemisphereLight(0xffffff, 0x080820, .2);
         this.add(light);
 
-        light = new THREE.PointLight(0xffffff, 0.5, 20);
-        light.position.set(0, 7, 0);
+        light = new THREE.AmbientLight(0xffffff, .2);
         this.add(light);
+
+        light = new THREE.DirectionalLight(0xffffff, 0.5);
+        light.position.set(0, 3, 0);
+        light.castShadow = true;
+        this.add(light);
+
+        const iso = this.iso = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(.3),
+            new THREE.MeshLambertMaterial({ color: 0x553344 })
+        );
+        iso.position.set(2, 1.5, -2);
+        iso.castShadow = true;
+        this.add(iso);
+
+        // Sky
+        const sunSphere = new THREEx.DayNight.SunSphere();
+        this.add(sunSphere.object3d);
+
+        const sunLight = new THREEx.DayNight.SunLight();
+        this.add(sunLight.object3d);
+
+        const skydom  = new THREEx.DayNight.Skydom();
+        this.add(skydom.object3d);
+
+        const starField   = new THREEx.DayNight.StarField();
+        this.add(starField.object3d);
+
+        window.updateSunAngle = this.updateSunAngle = (theta) => {
+            sunSphere.update(theta);
+            sunLight.update(theta);
+            skydom.update(theta);
+            starField.update(theta);
+        };
+
+        this.updateSunAngle(-Math.PI/2);
 
         // Show distant terrain
         return this.generateTerrain();
@@ -65,6 +89,10 @@ export default class Lobby extends Scene {
         monitor.visible = false;
         renderer.render(this, sceneCamera, renderTarget, true);
         monitor.visible = true;
+
+        this.iso.rotation.x += delta * 1;
+        this.iso.rotation.y += delta * 0.5;
+
     }
 
     getSceneCamera() {
