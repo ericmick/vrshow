@@ -18,6 +18,12 @@ router.get('/', function *(next) {
     this.body = html;
 });
 
+function *cacheControl(next) {
+    // 86400000 = a day in ms
+    this.set('Cache-Control', 'max-age=86400000'); 
+    yield next;
+}
+
 const generateMap = require('./generateMap');
 api.get('/map/:id', function *(next) {
     this.type = 'image/png';
@@ -28,13 +34,21 @@ api.get('/texture/:id', function *(next) {
     this.type = 'image/png';
     this.body = generateMap(this.params.id, false);
 });
+api.use(function *(next) {
+    // 86400000 = a day in ms
+    this.set('Cache-Control', 'max-age=86400000');
+    this.set('Access-Control-Allow-Origin', '*');
+    yield next;
+});
 
 router.use('/api', api.routes(), api.allowedMethods());
 
 app.use(bodyParser());
 app.use(router.routes());
 app.use(router.allowedMethods());
-app.use(serve(`${__dirname}/../dist`));
+app.use(serve(`${__dirname}/../dist`, {
+    maxage: 300000 // 5 minutes in ms
+}));
 
 server.listen(port);
 console.log(`Server started on http://${require("os").hostname()}:${port}`);
