@@ -15,7 +15,7 @@ const $colorIndicator = document.getElementById("color-indicator");
 
 const isCameraMode = location.hash === '#camera';
 
-var stats = new Stats();
+const stats = new Stats();
 stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 !isCameraMode && document.body.appendChild(stats.dom);
 

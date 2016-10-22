@@ -19,7 +19,8 @@ export default class EyeCamera extends Camera {
     }
 
     setBounds(bounds) {
-        this.bounds = bounds || this.bounds;
+        const newBounds = bounds !== null && bounds.length === 4 ? bounds : getDefaultBounds(this.type);
+        this.bounds = newBounds;
     }
 
     getEyeParams(vrDisplay) {
