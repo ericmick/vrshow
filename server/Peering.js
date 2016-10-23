@@ -11,8 +11,14 @@ module.exports = class Peering {
       this.sessions[sid].getSocket = () => {
         return socket;
       };
-      socket.on('callme', () => {
-        socket.broadcast.emit('callme', {
+      socket.on('callme', (room) => {
+
+        for(let oldRoom in socket.rooms) {
+          socket.leave(socket.rooms[oldRoom]);
+        }
+
+        socket.join(room);
+        socket.to(room).emit('callme', {
           name: sid
         });
       });

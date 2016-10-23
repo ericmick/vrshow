@@ -10,16 +10,51 @@ export default class Peering {
         this.element = context.document.createElement('a');
     }
 
+    removePeer(target) {
+        if (this.peers[target]) {
+            this.peers[target].connection.close();
+            this.peers[target].triggerEvent('close');
+            delete this.peers[target];
+        }
+    }
+
+    leaveRoom(fromRoom) {
+        return new Promise((resolve, reject) => {
+            if(fromRoom) {
+                // Leave rooms
+                console.log(`Leaving room: ${fromRoom}`);
+                for(let peer in this.peers) {
+                    this.removePeer(peer);
+                }
+                resolve();
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    joinRoom(toRoom) {
+        return new Promise((resolve, reject) => {
+            if(toRoom) {
+                console.log(`Entering room: ${toRoom}`);
+                this.socket.emit('callme', toRoom);
+                console.log(`sent callme to room ${toRoom}`);
+                resolve();
+            } else {
+                resolve();
+            }
+        });
+    }
+
     connect() {
         const socket = this.socket = io('/peering');
         socket.on('callme', (message) => {
             console.log('got callme', message);
             const target = message.name;
-            if (this.peers[target]) {
-                this.peers[target].connection.close();
-                this.peers[target].triggerEvent('close');
-                delete this.peers[target];
-            }
+
+            // remove peer if it already exists
+            this.removePeer(target);
+
             this.makePeerConnection(message.name, true).then((connection) => {
                 connection.createOffer().then((offer) => {
                     return connection.setLocalDescription(offer);
@@ -70,8 +105,6 @@ export default class Peering {
                 console.log('discarding icecandidate', message);
             }
         });
-        socket.emit('callme');
-        console.log('sent callme');
     }
 
     makePeerConnection(target, needsDataChannel) {

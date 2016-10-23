@@ -20,6 +20,7 @@ module.exports.template = (context) => {
             <div id="button-container" class="hide-for-camera">
                 <button id="vr-toggle">Enter VR</button>
                 <button id="reset-pose">Reset Pose</button>
+                <button id="new-room">Switch Room</button>
             </div>
 
             <div id="color-indicator" class="circle hide-for-camera"></div>
