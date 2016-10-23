@@ -5,8 +5,6 @@ import * as THREE from 'three';
 import { Object3D, OBJLoader } from 'three';
 import ViveController from './ViveController';
 
-const white = new THREE.Color(0xffffff);
-
 export default class Avatar extends Object3D {
     constructor(isPrimary, color) {
         super();
@@ -14,7 +12,7 @@ export default class Avatar extends Object3D {
         // Hide avatar until a position update
         this.visible = false;
 
-        this.color = color || white;
+        this.color = color || new THREE.Color(0xffffff);
         
         this.userId = null;
 
@@ -45,7 +43,7 @@ export default class Avatar extends Object3D {
 
         const loader = new OBJLoader();
         loader.load('models/glasses.obj', (obj) => {
-            let glasses = obj.children[0];
+            let glasses = obj.children[0].clone();
             glasses.material = new THREE.MeshPhongMaterial({
                 color: this.color
             });
@@ -152,7 +150,7 @@ export default class Avatar extends Object3D {
             this.glasses.material.color = this.color;
             this.glasses.material.needsUpdate = true;
             this.mouth.material.color = this.color;
-            this.glasses.material.needsUpdate = true;
+            this.mouth.material.needsUpdate = true;
         }
         
         offset = this.controllers[0].fromBuffer(buffer, offset);
