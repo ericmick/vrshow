@@ -5,6 +5,8 @@ import * as THREE from 'three';
 import { Object3D, OBJLoader } from 'three';
 import ViveController from './ViveController';
 
+const white = new THREE.Color(0xffffff);
+
 export default class Avatar extends Object3D {
     constructor(isPrimary, color) {
         super();
@@ -12,7 +14,7 @@ export default class Avatar extends Object3D {
         // Hide avatar until a position update
         this.visible = false;
 
-        this.color = color || new THREE.Color(0xffffff);
+        this.color = color || white;
         
         this.userId = null;
 
@@ -49,15 +51,15 @@ export default class Avatar extends Object3D {
             });
 
             let scale = 0.07;
-            obj.matrixAutoUpdate = false;
-            obj.rotateY(-Math.PI / 2);
-            obj.position.x = -18.4 * scale;
-            obj.position.z = 1.8 * scale;
-            obj.scale.set(scale, scale, scale);
-            obj.updateMatrix();
-            this.head.add(obj);
+            glasses.matrixAutoUpdate = false;
+            glasses.rotateY(-Math.PI / 2);
+            glasses.position.x = -18.4 * scale;
+            glasses.position.z = 1.8 * scale;
+            glasses.scale.set(scale, scale, scale);
+            glasses.updateMatrix();
+            this.head.add(glasses);
 
-            this.glasses = obj;
+            this.glasses = glasses;
         });
         
         this.linearVelocity = new THREE.Vector3();
@@ -148,7 +150,9 @@ export default class Avatar extends Object3D {
         this.color.b = dataView.getUint8(offset++) / 255;
         if (this.glasses && this.glasses.material) {
             this.glasses.material.color = this.color;
+            this.glasses.material.needsUpdate = true;
             this.mouth.material.color = this.color;
+            this.glasses.material.needsUpdate = true;
         }
         
         offset = this.controllers[0].fromBuffer(buffer, offset);
