@@ -7,6 +7,7 @@ module.exports = class Peering {
       if (!this.sessions[sid]) {
         this.sessions[sid] = {};
         console.log('new session', sid);
+        socket.emit('new');
       }
       this.sessions[sid].getSocket = () => {
         return socket;

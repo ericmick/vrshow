@@ -7,6 +7,7 @@ export default class Peering {
         this.onPeer = onPeer;
         this.peers = {};
         this.connect();
+        this.room = null;
         this.element = context.document.createElement('a');
     }
 
@@ -27,6 +28,7 @@ export default class Peering {
         return new Promise((resolve, reject) => {
             if(fromRoom) {
                 // Leave rooms
+                this.room = null;
                 console.log(`Leaving room: ${fromRoom}`);
                 for(let peer in this.peers) {
                     this.removePeer(peer);
@@ -41,6 +43,7 @@ export default class Peering {
     joinRoom(toRoom) {
         return new Promise((resolve, reject) => {
             if(toRoom) {
+                this.room = toRoom;
                 console.log(`Entering room: ${toRoom}`);
                 this.socket.emit('callme', toRoom);
                 console.log(`sent callme to room ${toRoom}`);
@@ -53,6 +56,12 @@ export default class Peering {
 
     connect() {
         const socket = this.socket = io('/peering');
+        socket.on('new', () => {
+            console.log('new socket');
+            if(this.room) {
+                this.joinRoom(this.room);
+            }
+        });
         socket.on('callme', (message) => {
             console.log('got callme', message);
             const target = message.name;
@@ -126,24 +135,19 @@ export default class Peering {
             }],
             rtcpMuxPolicy: 'require'
         });
-        let disconnectionTimeout = null;
         connection.addEventListener('negotiationneeded', (event) => {
             console.log('negotiationneeded', event);
         });
         connection.addEventListener('iceconnectionstatechange', (event) => {
             if(connection.iceConnectionState == 'closed'
-                || connection.iceConnectionState == 'failed'
-                || connection.iceConnectionState == 'disconnected') {
+                || connection.iceConnectionState == 'failed') {
                 const badState = connection.iceConnectionState;
-                setTimeout(() => {
-                    if(connection.iceConnectionState == badState) {
-                        console.log('discarding connection', target, connection);
-                        this.removePeer(target);
-                    }
-                }, 3000);
-            } else if(disconnectionTimeout) {
-                clearTimeout(disconnectionTimeout);
-                disconnectionTimeout = null;
+                console.log(badState, target, connection);
+                if(this.peers[target]) {
+                    this.peers[target].triggerEvent('close');
+                }
+            } else if(connection.iceConnectionState == 'disconnected') {
+                console.log('disconnected', target, connection);
             }
         });
         connection.addEventListener('icecandidate', (event) => {
