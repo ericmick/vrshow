@@ -12,7 +12,12 @@ export default class Peering {
 
     removePeer(target) {
         if (this.peers[target]) {
-            this.peers[target].connection.close();
+            if (this.peers[target].dataChannel) {
+                this.peers[target].dataChannel.close();
+            }
+            if (this.peers[target].connection) {
+                this.peers[target].connection.close();
+            }
             this.peers[target].triggerEvent('close');
             delete this.peers[target];
         }
@@ -132,14 +137,8 @@ export default class Peering {
                 const badState = connection.iceConnectionState;
                 setTimeout(() => {
                     if(connection.iceConnectionState == badState) {
-                        if(connection.iceConnectionState != 'closed') {
-                            connection.close();
-                        }
                         console.log('discarding connection', target, connection);
-                        if(this.peers[target]) {
-                            this.peers[target].triggerEvent('close');
-                            delete this.peers[target];
-                        }
+                        this.removePeer(target);
                     }
                 }, 3000);
             } else if(disconnectionTimeout) {
@@ -203,7 +202,7 @@ export default class Peering {
             });
         });
         dataChannel.addEventListener('close', (event) => {
-            this.peers[target].triggerEvent('close');
+            this.removePeer(target);
         });
     }
     
