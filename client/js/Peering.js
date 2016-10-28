@@ -16,6 +16,12 @@ export default class Peering {
             if (this.peers[target].dataChannel) {
                 this.peers[target].dataChannel.close();
             }
+            if (this.peers[target].audio) {
+                this.peers[target].audio.dispose();
+            }
+            if (this.peers[target].audioStream) {
+                this.peers[target].audioStream.close();
+            }
             if (this.peers[target].connection) {
                 this.peers[target].connection.close();
             }
@@ -84,10 +90,14 @@ export default class Peering {
             });
         });
         socket.on('answer', (answer) => {
-            console.log('got answer', answer);
-            const description = new RTCSessionDescription(answer.sdp);
-            description.name = answer.name;
-            this.peers[answer.name].connection.setRemoteDescription(description);
+            if (this.peers[answer.name]) {
+                console.log('got answer', answer);
+                const description = new RTCSessionDescription(answer.sdp);
+                description.name = answer.name;
+                this.peers[answer.name].connection.setRemoteDescription(description);
+            } else {
+                console.log('discarding answer', answer);
+            }
         });
         socket.on('offer', (offer) => {
             console.log('got offer', offer);
@@ -166,11 +176,13 @@ export default class Peering {
         const audio = this.peers[target].audio = new Audio();
         connection.addEventListener('track', (event) => {
             console.log('track', event);
-            audio.playStream(event.streams[0]);
+            this.audioStream = event.streams[0];
+            audio.playStream(this.audioStream);
         });
         connection.addEventListener('addstream', (event) => {
             console.log('addstream', event);
-            audio.playStream(event.stream);
+            this.audioStream = event.stream;
+            audio.playStream(this.audioStream);
         });
         connection.addEventListener('datachannel', (event) => {
             console.log('datachannel', event);

@@ -111,5 +111,6 @@ roomManager.changeRooms(null, 'lobby').then(() => {
 // debug stuff
 Object.assign(window, {
     user,
-    renderer
+    renderer,
+    roomManager
 });

@@ -51,9 +51,9 @@ export default class Audio {
         player.muted = true;
         player.srcObject = stream;
         player.play();
-        const source = context.createMediaStreamSource(stream);
-        const scriptNode = context.createScriptProcessor(256);
-        scriptNode.onaudioprocess = (audioProcessingEvent) => {
+        this.source = context.createMediaStreamSource(stream);
+        this.scriptNode = context.createScriptProcessor(256);
+        this.scriptNode.onaudioprocess = (audioProcessingEvent) => {
             var inputBuffer = audioProcessingEvent.inputBuffer;
             var data = inputBuffer.getChannelData(0);
             var total = 0
@@ -62,12 +62,27 @@ export default class Audio {
             }
             this.level = Math.sqrt(Math.sqrt(total / data.length));
         }
-        source.connect(scriptNode);
-        scriptNode.connect(context.destination);
+        this.source.connect(this.scriptNode);
+        this.scriptNode.connect(context.destination);
         if (!this.isPrimary) {
             this.panner = context.createPanner();
-            source.connect(this.panner);
+            this.source.connect(this.panner);
             this.panner.connect(context.destination);
+        }
+    }
+    
+    dispose() {
+        if (this.source) {
+            this.source.disconnect();
+            this.source = null;
+        }
+        if (this.scriptNode) {
+            this.scriptNode.disconnect();
+            this.scriptNode = null;
+        }
+        if (this.panner) {
+            this.panner.disconnect();
+            this.panner = null;
         }
     }
 }
