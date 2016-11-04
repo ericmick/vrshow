@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import * as THREEx from 'threeX';
 import { Object3D, Scene } from 'three';
+import VirtualCamera from '../VirtualCamera';
 
 export default class Lobby extends Scene {
     constructor() {
@@ -11,17 +12,9 @@ export default class Lobby extends Scene {
     }
 
     initialize() {
-        this.sceneCamera = new THREE.PerspectiveCamera(80, 16/9, 0.1, 1000);
-        this.renderTarget = new THREE.WebGLRenderTarget( 512, 512, { format: THREE.RGBFormat } );
-
         // Create camera box
-        const monitorGeometry = new THREE.BoxGeometry(16/9, 1, 16/9);
-        this.monitor = new THREE.Mesh(monitorGeometry, new THREE.MeshBasicMaterial({
-            map: this.renderTarget.texture
-        }));
-        this.monitor.add(this.sceneCamera);
-        this.monitor.position.set(0,2,-5);
-        this.monitor.rotateY(Math.PI);
+        this.monitor = new VirtualCamera(1, 512, 16/9);
+        this.monitor.position.set(0, 2, -5);
         this.add(this.monitor);
 
         // Floor box
@@ -86,13 +79,10 @@ export default class Lobby extends Scene {
             monitor
         } = this;
 
-        monitor.visible = false;
-        renderer.render(this, sceneCamera, renderTarget, true);
-        monitor.visible = true;
+        monitor.render(this, renderer);
 
         this.iso.rotation.x += delta * 1;
         this.iso.rotation.y += delta * 0.5;
-
     }
 
     getSceneCamera() {
