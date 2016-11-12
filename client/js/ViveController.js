@@ -4,7 +4,7 @@
  */
 import { Object3D, Matrix4, OBJLoader, TextureLoader } from 'three';
 
-const ButtomMap = {
+const ButtonMap = {
     thumbpad: 0,
     trigger: 1,
     grips: 2,
@@ -40,8 +40,8 @@ export default class ViveController extends Object3D {
         this.isPressed = [false, false, false, false];
 
         // Create button getters
-        for(let key in ButtomMap) {
-            const val = ButtomMap[key];
+        for(let key in ButtonMap) {
+            const val = ButtonMap[key];
             this[`is${capitalize(key)}Pressed`] = () => this.isPressed[val];
         }
         
@@ -73,8 +73,8 @@ export default class ViveController extends Object3D {
             }
 
             // Buttons
-            for(let key in ButtomMap) {
-                const val = ButtomMap[key];
+            for(let key in ButtonMap) {
+                const val = ButtonMap[key];
                 const gamepadPressed = gamepad.buttons[val].pressed;
                 if(this.isPressed[val] !== gamepadPressed) {
                     this.isPressed[val] = gamepadPressed;

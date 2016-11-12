@@ -13,6 +13,7 @@ export default class Lobby extends Room {
         // Create camera box
         this.monitor = new VirtualCamera(1, 512, 16/9);
         this.monitor.position.set(0, 2, -5);
+        this.monitor.rotateY(Math.PI);
         this.add(this.monitor);
 
         // Floor box
@@ -54,7 +55,7 @@ export default class Lobby extends Room {
         const skydom  = new THREEx.DayNight.Skydom();
         this.add(skydom.object3d);
 
-        const starField   = new THREEx.DayNight.StarField();
+        const starField = new THREEx.DayNight.StarField();
         this.add(starField.object3d);
 
         window.updateSunAngle = this.updateSunAngle = (theta) => {
@@ -65,9 +66,24 @@ export default class Lobby extends Room {
         };
 
         this.updateSunAngle(-Math.PI/2);
+        
+        this.handyCams = [];        
+        this.user.controllers.forEach((c, i) => {
+            c.addEventListener('gripsdown', (event) => this.toggleHandyCam(event, i));
+        });
 
         // Show distant terrain
-        return this.generateTerrain();
+        this.generateTerrain();
+    }
+    
+    toggleHandyCam(event, controllerNum) {
+        if(!this.handyCams[controllerNum]) {
+            this.handyCams[controllerNum] = new VirtualCamera(0.1, 512, 16/9);
+            this.user.controllers[controllerNum].add(this.handyCams[controllerNum]);
+        } else {
+            this.user.controllers[controllerNum].remove(this.handyCams[controllerNum]);
+            delete this.handyCams[controllerNum];
+        }
     }
 
     update(delta, renderer) {
@@ -76,6 +92,9 @@ export default class Lobby extends Room {
             renderer.render(this, this.monitor);
         } else {
             this.monitor.render(this, renderer);
+            this.handyCams.forEach((camera) => {
+                camera.render(this, renderer);
+            });
         }
 
         this.iso.rotation.x += delta * 1;

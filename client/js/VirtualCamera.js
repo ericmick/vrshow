@@ -12,7 +12,6 @@ export default class VirtualCamera extends THREE.Object3D {
             map: this.renderTarget.texture
         }));
         this.monitor.add(this.sceneCamera);
-        this.monitor.rotateY(Math.PI);
         this.add(this.monitor);
     }
     render(scene, renderer) {

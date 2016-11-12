@@ -21,7 +21,7 @@ export default class AvatarPrimary extends Avatar {
         this.position.set(0, 1.5, 0);
         this.updateMatrix();
 
-        this.controllers.forEach((c)=> {
+        this.controllers.forEach((c) => {
             c.addEventListener('menudown', () => {
                 if(typeof onMenu === 'function') {
                     onMenu();
