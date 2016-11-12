@@ -1,14 +1,12 @@
-/**
- * Class to represent a person in VR.
- */
 import * as THREE from 'three';
 import * as THREEx from 'threeX';
-import { Object3D, Scene } from 'three';
+import { Object3D } from 'three';
+import Room from '../Room';
 import VirtualCamera from '../VirtualCamera';
 
-export default class Lobby extends Scene {
-    constructor() {
-        super();
+export default class Lobby extends Room {
+    constructor(user) {
+        super(user);
     }
 
     initialize() {
@@ -73,20 +71,17 @@ export default class Lobby extends Scene {
     }
 
     update(delta, renderer) {
-        let {
-            renderTarget,
-            sceneCamera,
-            monitor
-        } = this;
-
-        monitor.render(this, renderer);
+        const isCameraMode = location.hash === '#camera';
+        if(isCameraMode) {
+            renderer.render(this, this.monitor);
+        } else {
+            this.monitor.render(this, renderer);
+        }
 
         this.iso.rotation.x += delta * 1;
         this.iso.rotation.y += delta * 0.5;
-    }
-
-    getSceneCamera() {
-        return this.sceneCamera;
+        
+        super.update(delta, renderer);
     }
 
     generateTerrain() {

@@ -2,8 +2,8 @@ import Peering from './Peering';
 import Avatar from './Avatar';
 import Replay from './Replay';
 
-import Lobby from './rooms/lobby';
-import Vestibule from './rooms/vestibule';
+import Lobby from './rooms/Lobby';
+import Vestibule from './rooms/Vestibule';
 
 export default class RoomManager {
     constructor(user) {
@@ -12,7 +12,6 @@ export default class RoomManager {
         this.currentRoom = null;
         this.currentScene = null;
         this.peering = new Peering((peer) => this.onNewPeer(peer));
-        this.replay = new Replay(this.peering);
 
         this.userBuffer = new ArrayBuffer(user.getBufferByteLength());
     }
@@ -54,17 +53,17 @@ export default class RoomManager {
     changeRooms(fromRoom, toRoom) {
         this.currentRoom = toRoom;
         return this.peering.leaveRoom(fromRoom)
-            .then(() => getRoom(toRoom))
+            .then(() => this.getRoom(toRoom))
             .then((roomObj) => this.initializeRoom(roomObj))
             .then(() => this.peering.joinRoom(toRoom))
     }
 
     // TODO remove, and use changeRooms directly
     toggleRooms() {
-        if(this.currentRoom == 'lobby') {
-            this.changeRooms('lobby', 'vestibule');
+        if(this.currentRoom == 'Lobby') {
+            this.changeRooms('Lobby', 'Vestibule');
         } else {
-            this.changeRooms('vestibule', 'lobby');
+            this.changeRooms('Vestibule', 'Lobby');
         }
     }
 
@@ -81,20 +80,21 @@ export default class RoomManager {
 
         this.currentScene.update(delta, renderer);
 
+        this.user.update(delta);
+        
         // send user position
         this.user.toBuffer(this.userBuffer);
         this.peering.send(this.userBuffer);
     }
-
-}
-
-// TODO: Replace with loading room via ajax
-function getRoom(roomName) {
-    return new Promise((resolve) => {
-        if(roomName == 'lobby') {
-            resolve(new Lobby());
-        } else {
-            resolve(new Vestibule());
-        }
-    });
+    
+    // TODO: Replace with loading room via ajax
+    getRoom(roomName) {
+        return new Promise((resolve) => {
+            if(roomName == 'Lobby') {
+                resolve(new Lobby(this.user));
+            } else {
+                resolve(new Vestibule(this.user));
+            }
+        });
+    }
 }

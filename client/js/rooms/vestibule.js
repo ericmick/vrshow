@@ -1,12 +1,9 @@
-/**
- * Class to represent a person in VR.
- */
 import * as THREE from 'three';
-import { Scene } from 'three';
+import Room from '../Room';
 
-export default class Lobby extends Scene {
-    constructor() {
-        super();
+export default class Lobby extends Room {
+    constructor(user) {
+        super(user);
     }
 
     initialize() {
@@ -32,15 +29,12 @@ export default class Lobby extends Scene {
         iso.position.set(2, 1.5, -2);
         iso.castShadow = true;
         this.add(iso);
-
     }
 
     update(delta, renderer) {
         this.iso.rotation.x += delta * 1;
         this.iso.rotation.y += delta * 0.5;
-    }
-
-    getSceneCamera() {
-        return null;
+        
+        super.update(delta, renderer);
     }
 }

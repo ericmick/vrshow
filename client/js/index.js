@@ -16,6 +16,10 @@ const stats = new Stats();
 stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 !isCameraMode && document.body.appendChild(stats.dom);
 
+if(isCameraMode) {
+    document.body.className = "camera-mode";
+}
+
 function showError(msg) {
     $error.innerHTML = msg;
     $error.style.display = !!msg ? 'inline' : 'none';
@@ -33,13 +37,14 @@ camera.visible = false;
 
 const user = new AvatarPrimary(() => renderer.resetPose());
 user.head.add(camera);
+user.camera = camera;
 
 const renderer = new VRRenderer(user, window, onVrChange, showError);
 document.body.appendChild(renderer.renderer.domElement);
 
 const roomManager = new RoomManager(user);
 
-$newRoom.onclick =() =>{
+$newRoom.onclick = () => {
     roomManager.toggleRooms();
 };
 
@@ -48,7 +53,7 @@ $colorIndicator.style.backgroundColor = `#${user.color.getHexString()}`;
 
 const clock = new THREE.Clock();
 
-function onResize () {
+function onResize() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     camera.aspect = width/height;
@@ -75,34 +80,13 @@ function renderLoop() {
 
     roomManager.update(delta, renderer);
 
-    const currentScene = roomManager.currentScene;
-    if(isCameraMode && currentScene.getSceneCamera()) {
-        renderer.render(currentScene, currentScene.getSceneCamera());
-    } else {
-        user.update(delta);
-
-        user.head.visible = false;
-        renderer.render(currentScene, camera);
-        user.head.visible = true;
-    }
-
     stats.end();
     renderer.requestAnimationFrame(renderLoop);
 }
 
 // Enter initial room
-roomManager.changeRooms(null, 'lobby').then(() => {
+roomManager.changeRooms(null, 'Vestibule').then(() => {
     document.getElementById('loading').style.display = 'none';
-
-    if(isCameraMode) {
-        document.body.className = "camera-mode";
-
-        user.visible = false;
-        roomManager.currentScene.remove(user);
-
-        // Mover user to scene camera so audio is right
-        roomManager.currentScene.getSceneCamera().add(user);
-    }
 
     // Start rendering
     renderLoop();

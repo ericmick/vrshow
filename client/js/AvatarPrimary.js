@@ -21,14 +21,7 @@ export default class AvatarPrimary extends Avatar {
         this.position.set(0, 1.5, 0);
         this.updateMatrix();
 
-        this.controllers = [
-            new ViveController(0),
-            new ViveController(1)
-        ];
-
         this.controllers.forEach((c)=> {
-            this.add(c);
-
             c.addEventListener('menudown', () => {
                 if(typeof onMenu === 'function') {
                     onMenu();
@@ -78,7 +71,7 @@ export default class AvatarPrimary extends Avatar {
     }
 
     update(delta) {
-        this.controllers.forEach((c)=> {
+        this.controllers.forEach((c) => {
             c.update();
             if(c.isThumbpadPressed()) {
                 let axes = c.getAxes();

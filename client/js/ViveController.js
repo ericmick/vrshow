@@ -47,16 +47,14 @@ export default class ViveController extends Object3D {
         
         // hide controller until it connects
         this.visible = false;
-
-        ViveModelPromise.then((obj)=> {
+        
+        ViveModelPromise.then((obj) => {
             this.add(obj.clone());
-        })
-
+        });
     }
 
     update() {
         const gamepad = this.gamepad = findGamepad(this.controllerNum);
-
         if(gamepad && gamepad.pose) {
             //  Position and orientation.
             const pose = gamepad.pose;
