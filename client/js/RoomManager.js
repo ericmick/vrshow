@@ -2,8 +2,8 @@ import Peering from './Peering';
 import Avatar from './Avatar';
 import Replay from './Replay';
 
-import Lobby from './rooms/Lobby';
-import Vestibule from './rooms/Vestibule';
+import Lobby from './rooms/lobby';
+import Vestibule from './rooms/vestibule';
 
 export default class RoomManager {
     constructor(user) {
