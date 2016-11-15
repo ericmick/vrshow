@@ -75,19 +75,29 @@ export default class Lobby extends Room {
         // Show distant terrain
         this.generateTerrain();
     }
-    
+
     toggleHandyCam(event, controllerNum) {
         let camera = this.handyCams[controllerNum];
         if(!camera) {
-            this.latestHandyCam = camera = this.handyCams[controllerNum] = new VirtualCamera(0.1, 512, 16/9);
+            // TODO: added the latest camera to the window for now to access view-tilt routines. Remove it from window once pad-based tilt works.
+            this.latestHandyCam = camera = this.handyCams[controllerNum] = window.handyCam = new VirtualCamera(0.1, 512, 16/9);
+            this.moveHandyCamUpAndAwayFromController(camera);
             this.user.controllers[controllerNum].add(camera);
         } else {
             delete this.handyCams[controllerNum];
             if(this.latestHandyCam == camera) {
                 this.latestHandyCam = null;
             }
+            if (window.handyCam == camera) {
+                window.handyCam = null;
+            }
             this.user.controllers[controllerNum].remove(camera);
         }
+    }
+
+    moveHandyCamUpAndAwayFromController(handyCam) {
+        handyCam.translateZ(-0.06);
+        handyCam.translateY(0.07);
     }
 
     update(delta, renderer) {

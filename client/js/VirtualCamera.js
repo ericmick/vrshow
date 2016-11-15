@@ -7,16 +7,21 @@ export default class VirtualCamera extends THREE.Object3D {
         this.renderTarget = new THREE.WebGLRenderTarget(aspectRatio * resolution, resolution, { format: THREE.RGBFormat });
 
         // Create camera box
-        const monitorGeometry = new THREE.BoxGeometry(size*aspectRatio, size, size*aspectRatio);
+        const monitorGeometry = new THREE.BoxGeometry(size*aspectRatio, size*aspectRatio, size);
         this.monitor = new THREE.Mesh(monitorGeometry, new THREE.MeshBasicMaterial({
             map: this.renderTarget.texture
         }));
         this.monitor.add(this.camera);
         this.add(this.monitor);
     }
+
     render(scene, renderer) {
         this.monitor.visible = false;
         renderer.render(scene, this.camera, this.renderTarget, true);
         this.monitor.visible = true;
+    }
+
+    tiltCameraLens(radians) {
+        this.sceneCamera.rotateX(radians);
     }
 }
