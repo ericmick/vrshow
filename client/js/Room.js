@@ -6,11 +6,20 @@ export default class Room extends Scene {
         this.user = user;
     }
     
-    update(delta, renderer) {
+    update(delta, renderer, camera) {
         const { user } = this;
         user.update(delta);
+        // vr render
         user.head.visible = false;
-        renderer.render(this, user.camera);
+        renderer.render(this, this.user.camera);
         user.head.visible = true;
+        // desktop render
+        if (camera) {
+            renderer.renderNonVR(this, camera);
+        }
+    }
+    
+    detach() {
+        // clean-up here and remove room-specific items
     }
 }

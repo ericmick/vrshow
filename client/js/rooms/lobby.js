@@ -77,30 +77,37 @@ export default class Lobby extends Room {
     }
     
     toggleHandyCam(event, controllerNum) {
-        if(!this.handyCams[controllerNum]) {
-            this.handyCams[controllerNum] = new VirtualCamera(0.1, 512, 16/9);
-            this.user.controllers[controllerNum].add(this.handyCams[controllerNum]);
+        let camera = this.handyCams[controllerNum];
+        if(!camera) {
+            this.latestHandyCam = camera = this.handyCams[controllerNum] = new VirtualCamera(0.1, 512, 16/9);
+            this.user.controllers[controllerNum].add(camera);
         } else {
-            this.user.controllers[controllerNum].remove(this.handyCams[controllerNum]);
             delete this.handyCams[controllerNum];
+            if(this.latestHandyCam == camera) {
+                this.latestHandyCam = null;
+            }
+            this.user.controllers[controllerNum].remove(camera);
         }
     }
 
     update(delta, renderer) {
-        const isCameraMode = location.hash === '#camera';
-        if(isCameraMode) {
-            renderer.render(this, this.monitor);
-        } else {
-            this.monitor.render(this, renderer);
-            this.handyCams.forEach((camera) => {
-                camera.render(this, renderer);
-            });
-        }
-
         this.iso.rotation.x += delta * 1;
         this.iso.rotation.y += delta * 0.5;
         
-        super.update(delta, renderer);
+        const isCameraMode = location.hash === '#camera';
+        if(isCameraMode) {
+            super.update(delta, renderer, this.monitor.camera);
+        } else {
+            this.monitor.render(this, renderer);
+            this.handyCams.forEach((camera, i) => {
+                camera.render(this, renderer);
+            });
+            if(this.latestHandyCam) {
+                super.update(delta, renderer, this.latestHandyCam.camera);
+            } else {
+                super.update(delta, renderer);
+            }
+        }
     }
 
     generateTerrain() {
@@ -132,5 +139,12 @@ export default class Lobby extends Room {
 
             this.add(mesh);
         })
+    }
+    
+    detach() {
+        this.handyCams.forEach((camera, i) => {
+            this.user.controllers[i].remove(camera);
+        });
+        super.detach();
     }
 }

@@ -12,7 +12,7 @@ export default class RoomManager {
         this.currentRoom = null;
         this.currentScene = null;
         this.peering = new Peering((peer) => this.onNewPeer(peer));
-
+        
         this.userBuffer = new ArrayBuffer(user.getBufferByteLength());
     }
 
@@ -51,6 +51,9 @@ export default class RoomManager {
     }
 
     changeRooms(fromRoom, toRoom) {
+        if(this.currentScene) {
+            this.currentScene.detach();
+        }
         this.currentRoom = toRoom;
         return this.peering.leaveRoom(fromRoom)
             .then(() => this.getRoom(toRoom))

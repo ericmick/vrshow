@@ -188,9 +188,16 @@ export default class VRRenderer {
 
             this.vrDisplay.submitFrame();
         } else {
-            // Non-VR render
+            const size = this.renderer.getSize();
+            this.renderer.setViewport(0, 0, size.width, size.height);
             this.renderer.render(scene, camera, renderTarget, forceClear);
         }
+    }
+    
+    renderNonVR(scene, camera, renderTarget, forceClear) {
+        const size = this.renderer.getSize();
+        this.renderer.setViewport(0, 0, size.width, size.height);
+        this.renderer.render(scene, camera, renderTarget, forceClear);
     }
 
     renderForEye(scene, eye) {
