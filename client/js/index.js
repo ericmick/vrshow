@@ -4,75 +4,57 @@ import VRRenderer from './VRRenderer';
 import AvatarPrimary from './AvatarPrimary';
 import RoomManager from './RoomManager';
 
-const $error = document.getElementById("error-container");
-const $vrToggle = document.getElementById("vr-toggle");
-const $resetPose = document.getElementById("reset-pose");
-const $colorIndicator = document.getElementById("color-indicator");
-const $newRoom = document.getElementById("new-room");
-
-const isCameraMode = location.hash === '#camera';
-
 const stats = new Stats();
 stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-!isCameraMode && document.body.appendChild(stats.dom);
+document.body.appendChild(stats.dom);
 
-if(isCameraMode) {
-    document.body.className = "camera-mode";
-}
+const $controlDiv = document.getElementById('browser-controls');
+const $error = $controlDiv.querySelector('#error-container');
+const $vrToggle = $controlDiv.querySelector('#vr-toggle');
 
 function showError(msg) {
     $error.innerHTML = msg;
     $error.style.display = !!msg ? 'inline' : 'none';
 }
 
-function updateButtons(supportsVr, isPresenting) {
-    $vrToggle.style.display = supportsVr ? 'inline-block' : 'none';
-    $vrToggle.innerHTML = isPresenting ? 'EXIT VR' : 'ENTER VR';
-
-    $resetPose.style.display = supportsVr && isPresenting ? 'inline-block' : 'none';
+function toggleVrMode(isVr) {
+    $controlDiv.classList.toggle('vr-mode', isVr);
 }
 
-const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-camera.visible = false;
+function toggleLoadingMask(isLoading) {
+    $controlDiv.classList.toggle('loading', isLoading);
+}
 
-const user = new AvatarPrimary(() => renderer.resetPose());
-user.head.add(camera);
-user.camera = camera;
-
-const renderer = new VRRenderer(user, window, onVrChange, showError);
-document.body.appendChild(renderer.renderer.domElement);
-
+const user = new AvatarPrimary();
+const renderer = new VRRenderer(user, window);
 const roomManager = new RoomManager(user);
 
-$newRoom.onclick = () => {
-    roomManager.toggleRooms();
-};
-
-// Indicate the color of your avatar
-$colorIndicator.style.backgroundColor = `#${user.color.getHexString()}`;
-
-const clock = new THREE.Clock();
+// Setup camera that displays in the browser
+const browserCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+browserCamera.visible = false;
+user.head.add(browserCamera);
+user.camera = browserCamera;
 
 function onResize() {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    camera.aspect = width/height;
-    camera.updateProjectionMatrix();
+    browserCamera.aspect = width/height;
+    browserCamera.updateProjectionMatrix();
     renderer.setSize(width, height);
 }
 window.addEventListener("resize", onResize, false);
 onResize();
 
-function onVrChange(hasVr, isPresenting) {
-    updateButtons(hasVr, isPresenting);
-}
+// Connect UI to renderer
 $vrToggle.onclick = () => {
-    renderer.setPresenting(!renderer.isPresenting);
-};
-$resetPose.onclick = () => {
-    renderer.resetPose();
+    renderer.setPresenting(true);
 };
 
+renderer.addEventListener('onstartpresenting', () => toggleVrMode(true));
+renderer.addEventListener('onstoppresenting', () => toggleVrMode(false));
+renderer.addEventListener('onerror', (e) => showError(e.message));
+
+const clock = new THREE.Clock();
 function renderLoop() {
     stats.begin();
 
@@ -86,7 +68,7 @@ function renderLoop() {
 
 // Enter initial room
 roomManager.changeRooms(null, 'Vestibule').then(() => {
-    document.getElementById('loading').style.display = 'none';
+    toggleLoadingMask(false);
 
     // Start rendering
     renderLoop();

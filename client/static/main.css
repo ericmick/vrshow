@@ -22,10 +22,6 @@ body {
     background: #534;
 }
 
-.camera-mode .hide-for-camera {
-    display: none !important;
-}
-
 canvas {
     position: absolute;
     width: 100%;
@@ -35,24 +31,41 @@ canvas {
     margin: 0;
 }
 
-#button-container {
+.circle {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 5;
+}
+
+#vr-toggle {
     position: absolute;
     bottom: 20px;
     right: 20px;
     z-index: 999;
-}
-
-#button-container button {
-    color: black;
-    text-align: center;
-    display: inline-block;
-    padding: 8px;
-    margin: 0 8px;
-    background-color: white;
+    width: 50px;
+    height: 50px;
+    background-size: contain;
     cursor: pointer;
 }
 
-#vr-toggle, #reset-pose {
+#vr-toggle svg {
+    width: 100%;
+    height: 100%;
+}
+
+#vr-toggle #cardboard path {
+    fill: #553344;
+}
+
+.vr-mode #vr-toggle {
+    display: none;
+}
+
+.loading #vr-toggle {
     display: none;
 }
 
@@ -75,16 +88,6 @@ canvas {
     display: none;
 }
 
-.circle {
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    z-index: 5;
-}
-
 #loading-background {
     background-color: #553344;
     position: absolute;
@@ -93,6 +96,14 @@ canvas {
     top: 0;
     bottom: 0;
     z-index: 800;
+}
+
+#loading {
+    display: none;
+}
+
+.loading #loading {
+    display: block;
 }
 
 #loading-text {
