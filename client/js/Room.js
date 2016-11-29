@@ -1,4 +1,5 @@
 import {Scene} from 'three'
+import SpaceMap from './SpaceMap'
 
 export default class Room extends Scene {
     constructor(user) {

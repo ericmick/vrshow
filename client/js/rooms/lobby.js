@@ -1,12 +1,15 @@
 import * as THREE from 'three';
 import * as THREEx from 'threeX';
-import { Object3D } from 'three';
+import { Object3D, Matrix4, Vector3 } from 'three';
 import Room from '../Room';
 import VirtualCamera from '../VirtualCamera';
+import SpaceMap from '../SpaceMap';
 
 export default class Lobby extends Room {
     constructor(user) {
         super(user);
+        this.grabMap = new SpaceMap();
+        this.holding = [];
     }
 
     initialize() {
@@ -15,6 +18,8 @@ export default class Lobby extends Room {
         this.monitor.position.set(0, 2, -5);
         this.monitor.rotateY(Math.PI);
         this.add(this.monitor);
+        
+        this.grabMap.add(this.monitor);
 
         // Floor box
         const floor = new THREE.Mesh(
@@ -44,6 +49,7 @@ export default class Lobby extends Room {
         iso.position.set(2, 1.5, -2);
         iso.castShadow = true;
         this.add(iso);
+        this.grabMap.add(iso);
 
         // Sky
         const sunSphere = new THREEx.DayNight.SunSphere();
@@ -66,33 +72,37 @@ export default class Lobby extends Room {
         };
 
         this.updateSunAngle(-Math.PI/2);
-        
-        this.handyCams = [];        
+           
         this.user.controllers.forEach((c, i) => {
-            c.addEventListener('gripsdown', (event) => this.toggleHandyCam(event, i));
+            c.addEventListener('gripsdown', (event) => this.grab(event, i));
         });
 
         // Show distant terrain
         this.generateTerrain();
     }
 
-    toggleHandyCam(event, controllerNum) {
-        let camera = this.handyCams[controllerNum];
-        if(!camera) {
-            // TODO: added the latest camera to the window for now to access view-tilt routines. Remove it from window once pad-based tilt works.
-            this.latestHandyCam = camera = this.handyCams[controllerNum] = window.handyCam = new VirtualCamera(0.1, 512, 16/9);
-            this.moveHandyCamUpAndAwayFromController(camera);
-            this.user.controllers[controllerNum].add(camera);
+    grab(event, controllerNum) {
+        let object = this.holding[controllerNum];
+        let controller = this.user.controllers[controllerNum];
+        if(!object) {
+            object = this.grabMap.getNearestObject(new Vector3().setFromMatrixPosition(controller.matrixWorld));
+            this.holding.forEach((o, i) => {
+                if (object == o) {
+                    delete this.holding[i];
+                }
+            });
+            this.holding[controllerNum] = object;
+            object.applyMatrix(object.parent.matrixWorld);
+            object.applyMatrix(new Matrix4().getInverse(this.user.controllers[controllerNum].matrixWorld));
+            this.user.controllers[controllerNum].add(object);
         } else {
-            delete this.handyCams[controllerNum];
-            if(this.latestHandyCam == camera) {
-                this.latestHandyCam = null;
-            }
-            if (window.handyCam == camera) {
-                window.handyCam = null;
-            }
-            this.user.controllers[controllerNum].remove(camera);
+            delete this.holding[controllerNum];
+            this.user.controllers[controllerNum].remove(object);
+            this.add(object);
+            object.applyMatrix(this.user.controllers[controllerNum].matrixWorld);
+            object.applyMatrix(new Matrix4().getInverse(this.matrixWorld));
         }
+        object.updateMatrixWorld(true);
     }
 
     moveHandyCamUpAndAwayFromController(handyCam) {
@@ -109,14 +119,7 @@ export default class Lobby extends Room {
             super.update(delta, renderer, this.monitor.camera);
         } else {
             this.monitor.render(this, renderer);
-            this.handyCams.forEach((camera, i) => {
-                camera.render(this, renderer);
-            });
-            if(this.latestHandyCam) {
-                super.update(delta, renderer, this.latestHandyCam.camera);
-            } else {
-                super.update(delta, renderer);
-            }
+            super.update(delta, renderer);
         }
     }
 
@@ -152,8 +155,8 @@ export default class Lobby extends Room {
     }
     
     detach() {
-        this.handyCams.forEach((camera, i) => {
-            this.user.controllers[i].remove(camera);
+        this.holding.forEach((object, i) => {
+            this.user.controllers[i].remove(object);
         });
         super.detach();
     }
