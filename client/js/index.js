@@ -69,7 +69,7 @@ function renderLoop() {
 const loadRoom = () => {
     const hash = document.location.hash.replace(/^#/, '');
 
-    return roomManager.changeRooms(null, hash || 'Vestibule').then(() => {
+    return roomManager.changeRooms(null, hash || 'vestibule').then(() => {
         toggleLoadingMask(false);
     });
 }
