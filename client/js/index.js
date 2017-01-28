@@ -55,6 +55,7 @@ renderer.addEventListener('onstoppresenting', () => toggleVrMode(false));
 renderer.addEventListener('onerror', (e) => showError(e.message));
 
 const clock = new THREE.Clock();
+let isRendering = false;
 function renderLoop() {
     stats.begin();
 
@@ -67,20 +68,26 @@ function renderLoop() {
 }
 
 const loadRoom = () => {
+    showError('');
+    toggleLoadingMask(true);
     const hash = document.location.hash.replace(/^#/, '');
 
     return roomManager.changeRooms(null, hash || 'vestibule').then(() => {
         toggleLoadingMask(false);
+    }).catch((err) => {
+        showError(err);
+    }).then(() => {
+        if (!isRendering && (isRendering = true)) {
+            // Start rendering
+            renderLoop();
+        }
     });
 }
 
 window.addEventListener("hashchange", loadRoom);
 
 // Enter initial room
-loadRoom().then(() => {
-    // Start rendering
-    renderLoop();
-});
+loadRoom();
 
 
 // debug stuff

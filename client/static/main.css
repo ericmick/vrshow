@@ -15,7 +15,7 @@ body {
     line-height: 1.5;
     margin: 0;
     font-family: Georgia, "Times New Roman", Times, serif;
-    color: #555;
+    color: #999;
     min-width: 300px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -89,13 +89,26 @@ canvas {
 }
 
 #loading-background {
-    background-color: #553344;
+    background-color: #534;
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
     z-index: 800;
+    animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #333;
+  }
+  50% {
+    background-color: #534;
+  }
+  100% {
+    background-color: #333;
+  }
 }
 
 #loading {
