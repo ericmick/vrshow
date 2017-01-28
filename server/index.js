@@ -1,3 +1,4 @@
+const fs = require('fs');
 const koa = require('koa');
 const app = koa();
 const server = require('http').createServer(app.callback());

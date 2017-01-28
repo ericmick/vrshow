@@ -2,9 +2,6 @@ import Peering from './Peering';
 import Avatar from './Avatar';
 import Replay from './Replay';
 
-import Lobby from './rooms/lobby';
-import Vestibule from './rooms/vestibule';
-
 export default class RoomManager {
     constructor(user) {
         this.user = user;
@@ -61,15 +58,6 @@ export default class RoomManager {
             .then(() => this.peering.joinRoom(toRoom))
     }
 
-    // TODO remove, and use changeRooms directly
-    toggleRooms() {
-        if(this.currentRoom == 'Lobby') {
-            this.changeRooms('Lobby', 'Vestibule');
-        } else {
-            this.changeRooms('Vestibule', 'Lobby');
-        }
-    }
-
     initializeRoom(roomObject) {
         this.currentScene = roomObject;
         this.currentScene.add(this.user);
@@ -90,14 +78,31 @@ export default class RoomManager {
         this.peering.send(this.userBuffer);
     }
     
-    // TODO: Replace with loading room via ajax
-    getRoom(roomName) {
-        return new Promise((resolve) => {
-            if(roomName == 'Lobby') {
-                resolve(new Lobby(this.user));
-            } else {
-                resolve(new Vestibule(this.user));
+    get(url) {
+        return new Promise((resolve, reject) => {
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            resolve(xhr.responseText);
+                        } else {
+                            reject();
+                        }
+                    }
+                };
+                xhr.open('GET', url);
+                xhr.send();
+            } catch (e) {
+                reject(e);
             }
+        });
+    }
+    
+    getRoom(roomName) {
+        return this.get(`js/rooms/${roomName}.js`).then((script) => {
+            const module = eval(script);
+            return new module.default(this.user);
         });
     }
 }

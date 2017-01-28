@@ -66,13 +66,22 @@ function renderLoop() {
     renderer.requestAnimationFrame(renderLoop);
 }
 
-// Enter initial room
-roomManager.changeRooms(null, 'Vestibule').then(() => {
-    toggleLoadingMask(false);
+const loadRoom = () => {
+    const hash = document.location.hash.replace(/^#/, '');
 
+    return roomManager.changeRooms(null, hash || 'Vestibule').then(() => {
+        toggleLoadingMask(false);
+    });
+}
+
+window.addEventListener("hashchange", loadRoom);
+
+// Enter initial room
+loadRoom().then(() => {
     // Start rendering
     renderLoop();
 });
+
 
 // debug stuff
 Object.assign(window, {
