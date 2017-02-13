@@ -22,7 +22,7 @@ module.exports = {
         'threeX': 'THREEx'
     }],
     module: {
-        loaders: [
+        rules: [
             {
                 test: jsRegex,
                 exclude: /node_modules/,
