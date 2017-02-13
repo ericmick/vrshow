@@ -124,34 +124,25 @@ export default class Lobby extends Room {
     }
 
     generateTerrain() {
-        const planeWidth = 256,
-            planeHeight = 256;
+        const planeWidth = 512,
+            planeHeight = 512;
         const loader = new THREE.TextureLoader();
         const seed = 'tony';
 
-        return Promise.all([
-            new Promise((resolve) => {
-                loader.load(`/api/map/${seed}`, resolve);
-            }),
-            new Promise((resolve) => {
-                loader.load(`/api/texture/${seed}`, resolve);
-            })
-        ]).then((textures) => {
-            const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, 512-1, 512-1);
-            const material = new THREE.MeshPhongMaterial({
-                map: textures[1],
-                displacementMap: textures[0],
-                displacementScale: 40,
-                displacementBias: 0,
-                color: 0xcccccc
-            });
+        const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, planeWidth-1, planeHeight-1);
+        const material = new THREE.MeshPhongMaterial({
+            map: loader.load(`/api/texture/${seed}`),
+            displacementMap: loader.load(`/api/map/${seed}`),
+            displacementScale: 40,
+            displacementBias: 0,
+            color: 0xFFFFFF
+        });
 
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.rotateX(-Math.PI/2);
-            mesh.position.set(0,-30,0);
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.rotateX(-Math.PI/2);
+        mesh.position.set(0,-30,0);
 
-            this.add(mesh);
-        })
+        this.add(mesh);
     }
     
     detach() {

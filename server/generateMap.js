@@ -1,6 +1,6 @@
 const fs = require('fs');
 const PNG = require('pngjs').PNG;
-const FastSimplexNoise = require('fast-simplex-noise');
+const FastSimplexNoise = require('fast-simplex-noise').default;
 const seedrandom = require('seedrandom');
 const LRU = require('lru');
 
@@ -50,7 +50,7 @@ module.exports = function(seedValue, isDisplacement) {
         for (let x = 0; x < img.width; x++) {
             let idx = (img.width * y + x) << 2;
 
-            let displacement = noiseGen.in2D(x, y);
+            let displacement = noiseGen.scaled([x, y]);
 
             // RGBA
             if(isDisplacement) {
@@ -59,7 +59,7 @@ module.exports = function(seedValue, isDisplacement) {
                 img.data[idx+2] = displacement;
                 img.data[idx+3] = 255;
             } else {
-                let moisture = noiseGen2.in2D(x, y);
+                let moisture = noiseGen2.scaled([x, y]);
                 let lookupPixel = getColorPixel(displacement, moisture);
                 img.data[idx] = colorLookup.data[lookupPixel];
                 img.data[idx+1] = colorLookup.data[lookupPixel+1];
