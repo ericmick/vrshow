@@ -3,7 +3,7 @@ module.exports = {
         app: ['babel-polyfill', './client/js/index.js']
     },
     output: {
-        path: 'dist/js',
+        path: `${__dirname}/dist/js`,
         filename: '[name].js'
     },
     externals: [{

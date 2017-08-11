@@ -14,7 +14,7 @@ module.exports = {
         return obj;
     }, {}),
     output: {
-        path: 'dist/js/rooms',
+		path: `${__dirname}/dist/js/rooms`,
         filename: '[name].js'
     },
     externals: [{
