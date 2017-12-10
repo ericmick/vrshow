@@ -31,27 +31,29 @@ gulp.task('static', function() {
 });
 
 gulp.task('webpack', function(callback) {
-    const compiler = webpack(webpackConfig);
-    compiler.run(function(err, stats) {
-        if(err) throw new gutil.PluginError('webpack', err);
-        gutil.log('[webpack]', stats.toString({
-            chunks: false,
-            color: true
-        }));
-        callback();
-    });
+    webpack(webpackConfig,
+        function(err, stats) {
+            if(err) throw new gutil.PluginError('webpack', err);
+            gutil.log('[webpack]', stats.toString({
+                chunks: false,
+                color: true
+            }));
+            callback();
+        }
+    );
 });
 
 gulp.task('webpack-rooms', function(callback) {
-    const compiler = webpack(webpackRoomsConfig);
-    compiler.run(function(err, stats) {
-        if(err) throw new gutil.PluginError('webpack', err);
-        gutil.log('[webpack rooms]', stats.toString({
-            chunks: false,
-            color: true
-        }));
-        callback();
-    });
+    webpack(webpackRoomsConfig,
+        function(err, stats) {
+            if(err) throw new gutil.PluginError('webpack', err);
+            gutil.log('[webpack rooms]', stats.toString({
+                chunks: false,
+                color: true
+            }));
+            callback();
+        }
+    );
 });
 
 gulp.task('webpack-dev', function() {

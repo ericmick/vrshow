@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const _ = require('underscore');
 
 const jsRegex = /\.js$/;
@@ -14,7 +15,7 @@ module.exports = {
         return obj;
     }, {}),
     output: {
-		path: `${__dirname}/dist/js/rooms`,
+		path: path.resolve(__dirname,'../dist/js/rooms'),
         filename: '[name].js'
     },
     externals: [{

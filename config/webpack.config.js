@@ -1,9 +1,11 @@
+const path = require('path');
+
 module.exports = {
     entry: {
         app: ['babel-polyfill', './client/js/index.js']
     },
     output: {
-        path: `${__dirname}/dist/js`,
+        path: path.resolve(__dirname, '../dist/js'),
         filename: '[name].js'
     },
     externals: [{
