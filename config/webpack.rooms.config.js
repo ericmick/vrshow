@@ -15,7 +15,7 @@ module.exports = {
         return obj;
     }, {}),
     output: {
-		path: path.resolve(__dirname,'../dist/js/rooms'),
+        path: path.resolve(__dirname,'../dist/js/rooms'),
         filename: '[name].js'
     },
     externals: [{
