@@ -1,12 +1,12 @@
-const gulp = require('gulp');
+const { dest, parallel, series, src, watch } = require('gulp');
+const PluginError = require('plugin-error');
 const webpack = require('webpack');
-const gutil = require('gulp-util');
 const webpackConfig = require('./config/webpack.config.js');
 const webpackRoomsConfig = require('./config/webpack.rooms.config.js');
 const webpackConfigDev = require('./config/webpack-dev.config.js');
 const webpackRoomsConfigDev = require('./config/webpack-dev.rooms.config.js');
 const del = require('del');
-const spawn = require('child_process').spawn;
+const { spawn } = require('child_process');
 let node;
 
 // Ensure all processing stops on Ctrl-C
@@ -14,90 +14,91 @@ process.once('SIGINT', function () {
     process.exit(0);
 });
 
-gulp.task('vendor', function() {
-    return gulp.src([
+function vendor() {
+    return src([
             './node_modules/three/build/three.min.js',
             './node_modules/stats.js/build/stats.min.js',
             './node_modules/three/examples/js/loaders/OBJLoader.js',
             './node_modules/webvr-polyfill/build/webvr-polyfill.js',
             './node_modules/webrtc-adapter/out/adapter.js'
         ], { buffer: true })
-        .pipe(gulp.dest('dist/vendor'));
-});
+        .pipe(dest('dist/vendor'));
+}
 
-gulp.task('static', function() {
-    return gulp.src(['client/static/**/*'], { buffer: true })
-        .pipe(gulp.dest('dist'));
-});
+function staticClient() {
+    return src(['client/static/**/*'], { buffer: true })
+        .pipe(dest('dist'));
+}
 
-gulp.task('webpack', function(callback) {
+function webpackClient(callback) {
     webpack(webpackConfig,
         function(err, stats) {
-            if(err) throw new gutil.PluginError('webpack', err);
-            gutil.log('[webpack]', stats.toString({
+            if(err) throw new PluginError('webpack', err);
+            console.log('[webpack]', stats.toString({
                 chunks: false,
                 color: true
             }));
             callback();
         }
     );
-});
+}
 
-gulp.task('webpack-rooms', function(callback) {
+function webpackRooms(callback) {
     webpack(webpackRoomsConfig,
         function(err, stats) {
-            if(err) throw new gutil.PluginError('webpack', err);
-            gutil.log('[webpack rooms]', stats.toString({
+            if(err) throw new PluginError('webpack', err);
+            console.log('[webpack rooms]', stats.toString({
                 chunks: false,
                 color: true
             }));
             callback();
         }
     );
-});
+}
 
-gulp.task('webpack-dev', function() {
+async function webpackDev() {
     const compiler = webpack(webpackConfigDev);
     compiler.watch({
         aggregateTimeout: 300
     },function(err, stats) {
-        if(err) throw new gutil.PluginError('webpack', err);
-        gutil.log('[webpack]', stats.toString({
+        if(err) throw new PluginError('webpack', err);
+        console.log('[webpack]', stats.toString({
             chunks: false,
             color: true
         }));
     });
-});
+}
 
-gulp.task('webpack-rooms-dev', function() {
+async function webpackRoomsDev() {
     const compiler = webpack(webpackRoomsConfigDev);
     compiler.watch({
         aggregateTimeout: 300
-    },function(err, stats) {
-        if(err) throw new gutil.PluginError('webpack', err);
-        gutil.log('[webpack rooms]', stats.toString({
+    }, function(err, stats) {
+        if(err) throw new PluginError('webpack', err);
+        console.log('[webpack rooms]', stats.toString({
             chunks: false,
             color: true
         }));
     });
-});
+}
 
-gulp.task('watch-client', ['vendor', 'static', 'webpack-dev', 'webpack-rooms-dev'], function() {
-    return gulp.watch(['client/static/**/*'], function() {
-        return gulp.run('static');
+const watchClient = parallel(vendor, staticClient, webpackDev, webpackRoomsDev, function watchStaticClient() {
+    watch('client/static/**/*', function(callback) {
+        staticClient();
+        callback();
     });
 });
 
-gulp.task('watch-server', function() {
-    gulp.run('start-server');
-
-    gulp.watch(['server/**/*.js'], function() {
-        gutil.log('Reloading server...');
-        gulp.run('start-server');
+function watchServer() {
+    startServer();
+    watch('server/**/*.js', function(callback) {
+        console.log('Reloading server...');
+        startServer();
+        callback();
     })
-});
+}
 
-gulp.task('start-server', function() {
+function startServer() {
     if(node) {
         node.kill();
     }
@@ -110,17 +111,17 @@ gulp.task('start-server', function() {
     });
     node.on('close', function (code) {
         if (code === 8) {
-            gutil.log('Error with server, waiting...');
+            console.log('Error with server, waiting...');
         }
     });
-});
+}
 
-gulp.task('clean', function() {
+exports.clean = function() {
     return del([
         'dist/**',
         'node_modules/**'
     ]);
-});
+}
 
-gulp.task('dev', ['watch-client', 'watch-server']);
-gulp.task('default', ['vendor', 'static', 'webpack', 'webpack-rooms']);
+exports.dev = parallel(watchClient, watchServer);
+exports.default = series(vendor, staticClient, webpackClient, webpackRooms);
